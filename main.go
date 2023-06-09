@@ -4,6 +4,7 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/benjamineskola/bookmarks/database"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 )
@@ -16,6 +17,8 @@ func main() {
 	router.Use(middleware.Recoverer)
 	router.Use(middleware.Compress(5))
 	router.Use(middleware.URLFormat)
+
+	database.DB = database.InitDatabase()
 
 	router.Get("/links", noopHandler)
 	router.Get("/links/page/{page}", noopHandler)
