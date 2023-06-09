@@ -20,6 +20,11 @@ func main() {
 
 	database.DB = database.InitDatabase()
 
+	err := database.DB.AutoMigrate(&Link{}) //nolint:exhaustruct
+	if err != nil {
+		log.Fatalf("failed to migrate database: %s", err)
+	}
+
 	router.Get("/links", noopHandler)
 	router.Get("/links/page/{page}", noopHandler)
 	router.Get("/links/{id}", noopHandler)
@@ -27,7 +32,7 @@ func main() {
 	router.Delete("/links/{id}", noopHandler)
 	router.Post("/links", noopHandler)
 
-	err := http.ListenAndServe(":8080", router)
+	err = http.ListenAndServe(":8080", router)
 	if err != nil {
 		log.Fatalf("Failed to start server: %s", err)
 	}
