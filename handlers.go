@@ -3,12 +3,19 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"html/template"
+	"log"
 	"net/http"
 	"strconv"
 
 	"github.com/benjamineskola/bookmarks/database"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+)
+
+var (
+	indexTmpl *template.Template //nolint:gochecknoglobals
+	showTmpl  *template.Template //nolint:gochecknoglobals
 )
 
 func noopHandler(w http.ResponseWriter, _ *http.Request) {
@@ -25,7 +32,14 @@ func indexHandler(w http.ResponseWriter, r *http.Request) {
 	case "json":
 		renderJSON(w, links)
 	default:
-		w.Write([]byte("not implemented"))
+		if indexTmpl == nil {
+			indexTmpl = template.Must(template.ParseFiles("templates/index.html", "templates/base.html"))
+		}
+
+		err := indexTmpl.ExecuteTemplate(w, "base.html", links)
+		if err != nil {
+			log.Printf("error rendering template: %s", err)
+		}
 	}
 }
 
@@ -45,7 +59,14 @@ func showHandler(w http.ResponseWriter, r *http.Request) {
 		}
 
 	default:
-		w.Write([]byte("not implemented"))
+		if showTmpl == nil {
+			showTmpl = template.Must(template.ParseFiles("templates/show.html", "templates/base.html"))
+		}
+
+		err := showTmpl.ExecuteTemplate(w, "base.html", link)
+		if err != nil {
+			log.Printf("error rendering template: %s", err)
+		}
 	}
 }
 
