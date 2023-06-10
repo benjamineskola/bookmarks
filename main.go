@@ -20,7 +20,7 @@ func main() {
 
 	database.DB = database.InitDatabase()
 
-	err := database.DB.AutoMigrate(&Link{}) //nolint:exhaustruct
+	err := database.RunMigrations()
 	if err != nil {
 		log.Fatalf("failed to migrate database: %s", err)
 	}
