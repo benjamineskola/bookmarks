@@ -1,3 +1,32 @@
 {{ define "body" }}
-hello world!
+<div class="links">
+    {{ range . }}
+    <div id="link_{{ .ID }}" class="link" data-controller="links">
+        <a href="{{ .URL }}" class="main-link">
+            {{ if .Title }}
+            {{ .Title }}
+        {{ else }}
+            {{ .URL }}
+            {{ end }}
+        </a>
+        <br>
+        {{ if .Description }}
+        <span class="description">{{ .Description }}</span>
+        {{ end }}
+        <!-- TODO tags -->
+        <br>
+        <div class="meta-items">
+            {{ if .SavedAt }}
+            <span class="meta-item">saved at {{ .SavedAt }}</span>
+            {{ end }}
+            {{ if .ReadAt }}
+            <span class="meta-item">read at {{ .ReadAt }}</span>
+            {{ end }}
+            <span class="meta-item">edit</span>
+            <span class="meta-item">delete</span>
+            <span class="meta-item">mark as read</span>
+        </div>
+    </div>
+    {{ end }}
+</div>
 {{ end }}

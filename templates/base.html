@@ -1,14 +1,41 @@
 <!DOCTYPE html>
 <html>
     <head>
-        <title>
-            {{- block "title" . -}}
-            bookmarks
-            {{- end -}}
-        </title>
+        <title>Bookmarks</title>
+        <meta name="viewport" content="width=device-width,initial-scale=1">
+        <!-- todo
+        <%= csrf_meta_tags %>
+        <%= csp_meta_tag %>
+        -->
+        <link rel="preconnect" href="https://rsms.me/">
+        <link rel="stylesheet" href="https://rsms.me/inter/inter.css">
+        <link rel="stylesheet" href="/static/style.css">
     </head>
     <body>
-        {{ block "body" . -}}
-        {{- end }}
+        <header>
+            <nav>
+                <a href="/">bookmarks</a>
+                <ul>
+                    <!-- todo
+                    <% if user_signed_in? %>
+                    <li>
+                        <%= link_to "New link", new_link_path %>
+                    </li>
+                    <li>
+                        <%= button_to "Log out", destroy_user_session_path, method: :delete, class: "button-link" %>
+                    </li>
+                    <% else %>
+                    <li>
+                        <%= link_to "Log in", new_user_session_path %>
+                    </li>
+                    <% end %>
+                    -->
+                </ul>
+            </nav>
+        </header>
+        <main>
+            {{ block "body" . -}}
+            {{- end }}
+        </main>
     </body>
 </html>
