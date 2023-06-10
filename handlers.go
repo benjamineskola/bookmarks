@@ -18,11 +18,12 @@ func indexHandler(w http.ResponseWriter, r *http.Request) {
 	switch urlFormat {
 	case "json":
 		w.Header().Set("Content-Type", "application/json")
+
 		links := GetLinks(database.DB, pageNumber, 0)
+
 		result, err := json.Marshal(links)
 		if err != nil {
-			result = []byte(fmt.Sprintf("{\"status\": %d, \"message\": \"%s\"}", http.StatusBadRequest, err))
-			w.WriteHeader(http.StatusBadRequest)
+			result = renderJSONError(w, err, 0)
 		}
 
 		w.Write(result)
@@ -53,16 +54,34 @@ func showHandler(w http.ResponseWriter, r *http.Request) {
 			result, err = json.Marshal(link)
 		}
 
-		if err != nil {
-			result = []byte(fmt.Sprintf("{\"status\": %d, \"message\": \"%s\"}", http.StatusBadRequest, err))
-			w.WriteHeader(http.StatusBadRequest)
-		} else if status > 0 {
-			result = []byte(fmt.Sprintf("{\"status\": %d, \"message\": \"%s\"}", status, http.StatusText(status)))
-			w.WriteHeader(status)
+		if err != nil || status > 0 {
+			result = renderJSONError(w, err, status)
 		}
 
 		w.Write(result)
 	default:
 		w.Write([]byte("not implemented"))
 	}
+}
+
+func renderJSONError(w http.ResponseWriter, err error, status int) []byte {
+	var message string
+
+	if status == 0 {
+		status = http.StatusBadRequest
+	} else {
+		message = http.StatusText(status)
+	}
+
+	if err != nil {
+		message = fmt.Sprintf("%s", err)
+	}
+
+	if message == "" {
+		message = "Unknown error"
+	}
+
+	w.WriteHeader(status)
+
+	return []byte(fmt.Sprintf("{\"status\": %d, \"message\": \"%s\"}", status, message))
 }
