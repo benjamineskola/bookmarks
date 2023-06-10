@@ -1,24 +1,28 @@
 package main
 
 import (
+	"net/url"
 	"time"
 
+	"gorm.io/datatypes"
 	"gorm.io/gorm"
 )
 
 type Link struct {
 	gorm.Model
 
-	URL         string
+	URL         *datatypes.URL
 	Title       string
 	Description string
 	SavedAt     time.Time
 	ReadAt      time.Time
 }
 
-func NewLink(url string, title string, description string) *Link {
+func NewLink(urlString string, title string, description string) *Link {
+	parsedURL, _ := url.Parse(urlString)
+	gormURL := datatypes.URL(*parsedURL)
 	link := Link{ //nolint:exhaustruct
-		URL:         url,
+		URL:         &gormURL,
 		Title:       title,
 		Description: description,
 	}

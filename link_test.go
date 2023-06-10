@@ -27,5 +27,5 @@ func TestLink(t *testing.T) {
 
 	link := NewLink("http://example.com/", "Example Website", "This is just an example.")
 
-	assert.Equal(t, "http://example.com/", link.URL)
+	assert.Equal(t, "http://example.com/", link.URL.String())
 }
