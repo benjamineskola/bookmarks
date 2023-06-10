@@ -27,7 +27,7 @@ func main() {
 
 	router.Get("/links", indexHandler)
 	router.Get("/links/page/{page}", indexHandler)
-	router.Get("/links/{id}", noopHandler)
+	router.Get("/links/{id}", showHandler)
 	router.Put("/links/{id}", noopHandler)
 	router.Delete("/links/{id}", noopHandler)
 	router.Post("/links", noopHandler)

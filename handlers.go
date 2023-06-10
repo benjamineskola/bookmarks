@@ -30,3 +30,39 @@ func indexHandler(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte("not implemented"))
 	}
 }
+
+func showHandler(w http.ResponseWriter, r *http.Request) {
+	urlFormat, _ := r.Context().Value(middleware.URLFormatCtxKey).(string)
+	linkID, _ := strconv.Atoi(chi.URLParam(r, "id"))
+
+	switch urlFormat {
+	case "json":
+		w.Header().Set("Content-Type", "application/json")
+
+		link := GetLinkByID(database.DB, uint(linkID))
+
+		var (
+			result []byte
+			err    error
+			status int
+		)
+
+		if link.ID == 0 {
+			status = http.StatusNotFound
+		} else {
+			result, err = json.Marshal(link)
+		}
+
+		if err != nil {
+			result = []byte(fmt.Sprintf("{\"status\": %d, \"message\": \"%s\"}", http.StatusBadRequest, err))
+			w.WriteHeader(http.StatusBadRequest)
+		} else if status > 0 {
+			result = []byte(fmt.Sprintf("{\"status\": %d, \"message\": \"%s\"}", status, http.StatusText(status)))
+			w.WriteHeader(status)
+		}
+
+		w.Write(result)
+	default:
+		w.Write([]byte("not implemented"))
+	}
+}
