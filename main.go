@@ -25,8 +25,8 @@ func main() {
 		log.Fatalf("failed to migrate database: %s", err)
 	}
 
-	router.Get("/links", noopHandler)
-	router.Get("/links/page/{page}", noopHandler)
+	router.Get("/links", indexHandler)
+	router.Get("/links/page/{page}", indexHandler)
 	router.Get("/links/{id}", noopHandler)
 	router.Put("/links/{id}", noopHandler)
 	router.Delete("/links/{id}", noopHandler)
