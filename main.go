@@ -37,8 +37,3 @@ func main() {
 		log.Fatalf("Failed to start server: %s", err)
 	}
 }
-
-func noopHandler(w http.ResponseWriter, _ *http.Request) {
-	w.Header().Set("Content-Type", "text/plain")
-	w.Write([]byte("hello world\n"))
-}

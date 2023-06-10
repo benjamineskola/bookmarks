@@ -11,6 +11,11 @@ import (
 	"github.com/go-chi/chi/v5/middleware"
 )
 
+func noopHandler(w http.ResponseWriter, _ *http.Request) {
+	w.Header().Set("Content-Type", "text/plain")
+	w.Write([]byte("hello world\n"))
+}
+
 func indexHandler(w http.ResponseWriter, r *http.Request) {
 	urlFormat, _ := r.Context().Value(middleware.URLFormatCtxKey).(string)
 	pageNumber, _ := strconv.Atoi(chi.URLParam(r, "page"))
