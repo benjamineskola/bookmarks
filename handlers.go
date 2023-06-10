@@ -19,19 +19,11 @@ func noopHandler(w http.ResponseWriter, _ *http.Request) {
 func indexHandler(w http.ResponseWriter, r *http.Request) {
 	urlFormat, _ := r.Context().Value(middleware.URLFormatCtxKey).(string)
 	pageNumber, _ := strconv.Atoi(chi.URLParam(r, "page"))
+	links := GetLinks(database.DB, pageNumber, 0)
 
 	switch urlFormat {
 	case "json":
-		w.Header().Set("Content-Type", "application/json")
-
-		links := GetLinks(database.DB, pageNumber, 0)
-
-		result, err := json.Marshal(links)
-		if err != nil {
-			result = renderJSONError(w, err, 0)
-		}
-
-		w.Write(result)
+		renderJSON(w, links)
 	default:
 		w.Write([]byte("not implemented"))
 	}
@@ -40,33 +32,32 @@ func indexHandler(w http.ResponseWriter, r *http.Request) {
 func showHandler(w http.ResponseWriter, r *http.Request) {
 	urlFormat, _ := r.Context().Value(middleware.URLFormatCtxKey).(string)
 	linkID, _ := strconv.Atoi(chi.URLParam(r, "id"))
+	link := GetLinkByID(database.DB, uint(linkID))
 
 	switch urlFormat {
 	case "json":
-		w.Header().Set("Content-Type", "application/json")
-
-		link := GetLinkByID(database.DB, uint(linkID))
-
-		var (
-			result []byte
-			err    error
-			status int
-		)
-
 		if link.ID == 0 {
-			status = http.StatusNotFound
+			w.Header().Set("Content-Type", "application/json")
+			result := renderJSONError(w, nil, http.StatusNotFound)
+			w.Write(result)
 		} else {
-			result, err = json.Marshal(link)
+			renderJSON(w, link)
 		}
 
-		if err != nil || status > 0 {
-			result = renderJSONError(w, err, status)
-		}
-
-		w.Write(result)
 	default:
 		w.Write([]byte("not implemented"))
 	}
+}
+
+func renderJSON(w http.ResponseWriter, data any) {
+	w.Header().Set("Content-Type", "application/json")
+
+	result, err := json.Marshal(data)
+	if err != nil {
+		result = renderJSONError(w, err, 0)
+	}
+
+	w.Write(result)
 }
 
 func renderJSONError(w http.ResponseWriter, err error, status int) []byte {
