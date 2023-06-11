@@ -50,6 +50,8 @@ func main() {
 		})
 
 		router.Get("/page/{page}", indexHandler)
+
+		router.Get("/new", newFormHandler)
 		router.Post("/", createHandler)
 
 		router.Route("/{id}/", func(router chi.Router) {

@@ -8,6 +8,7 @@ import (
 	"log"
 	"net/http"
 	"strconv"
+	"time"
 
 	"github.com/benjamineskola/bookmarks/database"
 	"github.com/go-chi/chi/v5"
@@ -114,6 +115,18 @@ func showHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func newFormHandler(w http.ResponseWriter, r *http.Request) {
+	formTmpl := template.Must(template.ParseFiles("templates/form.html", "templates/base.html"))
+
+	ctx := SingleTemplateContext{Link: nil}
+	ctx.Authenticated = true
+
+	err := formTmpl.ExecuteTemplate(w, "base.html", ctx)
+	if err != nil {
+		log.Printf("error rendering template: %s", err)
+	}
+}
+
 func createHandler(w http.ResponseWriter, r *http.Request) {
 	data := &LinkRequest{}
 	if err := render.Bind(r, data); err != nil {
@@ -122,9 +135,14 @@ func createHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	link := data.Link
+
+	if link.SavedAt.IsZero() {
+		link.SavedAt = time.Now()
+	}
+
 	link.Save(database.DB)
 
-	render.Status(r, http.StatusCreated)
+	http.Redirect(w, r, "/links/", http.StatusSeeOther)
 }
 
 func renderJSON(w http.ResponseWriter, data any) {
