@@ -1,0 +1,1 @@
+ALTER TABLE links ADD COLUMN public bool NOT NULL DEFAULT false;
