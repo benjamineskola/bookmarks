@@ -55,3 +55,11 @@ func GetLinkByID(db *gorm.DB, id uint) *Link {
 
 	return &link
 }
+
+func (l Link) IsRead() bool {
+	return !l.ReadAt.IsZero()
+}
+
+func (l Link) HasReadDate() bool {
+	return l.ReadAt.Unix() > 0
+}

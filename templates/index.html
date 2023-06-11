@@ -16,11 +16,15 @@
         <!-- TODO tags -->
         <br>
         <div class="meta-items">
-            {{ if .SavedAt }}
-            <span class="meta-item">saved at {{ .SavedAt }}</span>
+            {{ if not .SavedAt.IsZero }}
+            <span class="meta-item">saved {{ .SavedAt.Format "2 Jan, 2006" }}</span>
             {{ end }}
-            {{ if .ReadAt }}
-            <span class="meta-item">read at {{ .ReadAt }}</span>
+            {{ if .IsRead }}
+            <span class="meta-item">read
+                {{ if .HasReadDate }}
+                {{ .ReadAt.Format "2 Jan, 2006"}}
+                {{ end }}
+            </span>
             {{ end }}
             <span class="meta-item">edit</span>
             <span class="meta-item">delete</span>
