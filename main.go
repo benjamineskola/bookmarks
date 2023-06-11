@@ -50,7 +50,7 @@ func main() {
 		})
 
 		router.Get("/page/{page}", indexHandler)
-		router.Post("/", noopHandler)
+		router.Post("/", createHandler)
 
 		router.Route("/{id}/", func(router chi.Router) {
 			router.Get("/", showHandler)

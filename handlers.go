@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"html/template"
 	"log"
@@ -11,6 +12,7 @@ import (
 	"github.com/benjamineskola/bookmarks/database"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+	"github.com/go-chi/render"
 )
 
 type TemplateContext struct {
@@ -25,6 +27,18 @@ type SingleTemplateContext struct {
 type MultiTemplateContext struct {
 	TemplateContext
 	Links *[]Link
+}
+
+type LinkRequest struct {
+	*Link
+}
+
+func (l *LinkRequest) Bind(r *http.Request) error {
+	if l.Link == nil {
+		return errors.New("link not defined? what")
+	}
+
+	return nil
 }
 
 var (
@@ -98,6 +112,19 @@ func showHandler(w http.ResponseWriter, r *http.Request) {
 			log.Printf("error rendering template: %s", err)
 		}
 	}
+}
+
+func createHandler(w http.ResponseWriter, r *http.Request) {
+	data := &LinkRequest{}
+	if err := render.Bind(r, data); err != nil {
+		w.WriteHeader(500)
+		return
+	}
+
+	link := data.Link
+	link.Save(database.DB)
+
+	render.Status(r, http.StatusCreated)
 }
 
 func renderJSON(w http.ResponseWriter, data any) {

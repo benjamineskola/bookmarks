@@ -83,3 +83,9 @@ func (l Link) IsRead() bool {
 func (l Link) HasReadDate() bool {
 	return l.ReadAt.Unix() > 0
 }
+
+func (l Link) Save(db *gorm.DB) error {
+	var result *gorm.DB
+	result = db.Create(&l)
+	return result.Error
+}
