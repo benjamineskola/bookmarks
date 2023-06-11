@@ -65,13 +65,16 @@ func main() {
 	router.Handle("/static/*", http.StripPrefix("/static/", fs))
 
 	host := os.Getenv("HOST")
+	port := os.Getenv("PORT")
+
 	if host == "" {
 		host = "0.0.0.0"
 	}
-	port := os.Getenv("PORT")
+
 	if port == "" {
 		port = "8080"
 	}
+
 	log.Printf("listening on %s:%s", host, port)
 
 	err = http.ListenAndServe(fmt.Sprintf("%s:%s", host, port), router)

@@ -34,7 +34,7 @@ type LinkRequest struct {
 	*Link
 }
 
-func (l *LinkRequest) Bind(r *http.Request) error {
+func (l *LinkRequest) Bind(_ *http.Request) error {
 	if l.Link == nil {
 		return errors.New("link not defined? what")
 	}
@@ -75,7 +75,7 @@ func indexHandler(w http.ResponseWriter, r *http.Request) {
 			indexTmpl = template.Must(template.ParseFiles("templates/index.html", "templates/base.html"))
 		}
 
-		ctx := MultiTemplateContext{Links: links}
+		ctx := MultiTemplateContext{Links: links} //nolint:exhaustruct
 		ctx.Authenticated = authenticated
 
 		err := indexTmpl.ExecuteTemplate(w, "base.html", ctx)
@@ -105,7 +105,7 @@ func showHandler(w http.ResponseWriter, r *http.Request) {
 			showTmpl = template.Must(template.ParseFiles("templates/show.html", "templates/base.html"))
 		}
 
-		ctx := SingleTemplateContext{Link: link}
+		ctx := SingleTemplateContext{Link: link} //nolint:exhaustruct
 		ctx.Authenticated = true
 
 		err := showTmpl.ExecuteTemplate(w, "base.html", ctx)
@@ -115,10 +115,10 @@ func showHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func newFormHandler(w http.ResponseWriter, r *http.Request) {
+func newFormHandler(w http.ResponseWriter, _ *http.Request) {
 	formTmpl := template.Must(template.ParseFiles("templates/form.html", "templates/base.html"))
 
-	ctx := SingleTemplateContext{Link: nil}
+	ctx := SingleTemplateContext{Link: nil} //nolint:exhaustruct
 	ctx.Authenticated = true
 
 	err := formTmpl.ExecuteTemplate(w, "base.html", ctx)
@@ -128,9 +128,10 @@ func newFormHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func createHandler(w http.ResponseWriter, r *http.Request) {
-	data := &LinkRequest{}
+	data := &LinkRequest{} //nolint:exhaustruct
 	if err := render.Bind(r, data); err != nil {
-		w.WriteHeader(500)
+		w.WriteHeader(http.StatusInternalServerError)
+
 		return
 	}
 
