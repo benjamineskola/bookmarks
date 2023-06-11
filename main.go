@@ -3,6 +3,7 @@ package main
 import (
 	"log"
 	"net/http"
+	"os"
 
 	"github.com/benjamineskola/bookmarks/database"
 	"github.com/go-chi/chi/v5"
@@ -17,6 +18,16 @@ func main() {
 	router.Use(middleware.Recoverer)
 	router.Use(middleware.Compress(5))
 
+	expectedUser := os.Getenv("AUTH_USER")
+	expectedPass := os.Getenv("AUTH_PASSWORD")
+
+	if expectedUser == "" || expectedPass == "" {
+		log.Fatal("no user and password defined")
+	}
+
+	log.Printf("enabling auth for user %s", expectedUser)
+	auth := middleware.BasicAuth("bookmarks", map[string]string{expectedUser: expectedPass})
+
 	database.DB = database.InitDatabase()
 
 	err := database.RunMigrations()
@@ -26,6 +37,7 @@ func main() {
 
 	router.Route("/links", func(router chi.Router) {
 		router.Use(middleware.URLFormat)
+		router.Use(auth)
 
 		router.Get("/", indexHandler)
 		router.Get("/page/{page}", indexHandler)
