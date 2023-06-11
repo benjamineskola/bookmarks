@@ -38,6 +38,9 @@ func main() {
 		})
 	})
 
+	fs := http.FileServer(http.Dir("static"))
+	router.Handle("/static/*", http.StripPrefix("/static/", fs))
+
 	err = http.ListenAndServe(":8080", router)
 	if err != nil {
 		log.Fatalf("Failed to start server: %s", err)
