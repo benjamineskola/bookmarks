@@ -1,0 +1,21 @@
+{{ define "body" }}
+<form action="/links/{{ if ne .Link.ID 0 }}{{ .Link.ID }}{{ end }}/"
+      method="POST">
+    URL
+    <input type="text"
+           name="Link.URL"
+           value="{{ if .Link.URL }}{{.Link.URL}}{{ end }}">
+    <br>
+    Title
+    <input type="text"
+           name="Link.Title"
+           value="{{ if .Link.Title }}{{ .Link.Title }}{{ end }}">
+    <br>
+    Description <textarea name="Link.Description">{{ if .Link.Description }}{{ .Link.Description }}{{ end }}</textarea>
+    <br>
+    <input type="submit">
+    {{ if ne .Link.ID 0 }}
+    <input type="hidden" name="Link.ID" value="{{.Link.ID}}">
+    {{ end }}
+</form>
+{{ end }}
