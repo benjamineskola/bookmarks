@@ -62,13 +62,17 @@ func main() {
 	fs := http.FileServer(http.Dir("static"))
 	router.Handle("/static/*", http.StripPrefix("/static/", fs))
 
+	host := os.Getenv("HOST")
+	if host == "" {
+		host = "0.0.0.0"
+	}
 	port := os.Getenv("PORT")
 	if port == "" {
 		port = "8080"
 	}
-	log.Printf("listening on port %s", port)
+	log.Printf("listening on %s:%s", host, port)
 
-	err = http.ListenAndServe(fmt.Sprintf(":%s", port), router)
+	err = http.ListenAndServe(fmt.Sprintf("%s:%s", host, port), router)
 	if err != nil {
 		log.Fatalf("Failed to start server: %s", err)
 	}
