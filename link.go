@@ -43,7 +43,7 @@ func GetLinks(db *gorm.DB, page int, count int) *[]Link {
 
 	offset := (page - 1) * count
 
-	db.Order("saved_at").Limit(count).Offset(offset).Find(&links)
+	db.Order("saved_at desc").Limit(count).Offset(offset).Find(&links)
 
 	return &links
 }
