@@ -1,7 +1,9 @@
 {{ define "body" }}
 <div class="links">
     {{ range .Links }}
-    <div id="link_{{ .ID }}" class="link" data-controller="links">
+    <div id="link_{{ .ID }}"
+         class="link link-{{ if not .IsRead }}un{{ end }}read"
+         data-controller="links">
         <a href="{{ .URL }}" class="main-link">
             {{ if .Title }}
             {{ .Title }}
