@@ -13,7 +13,9 @@ import (
 	"github.com/go-chi/chi/v5/middleware"
 )
 
-type TemplateContext struct{}
+type TemplateContext struct {
+	Authenticated bool
+}
 
 type SingleTemplateContext struct {
 	TemplateContext
@@ -40,6 +42,8 @@ func indexHandler(w http.ResponseWriter, r *http.Request) {
 	pageNumber, _ := strconv.Atoi(chi.URLParam(r, "page"))
 	links := GetLinks(database.DB, pageNumber, 0)
 
+	authenticated := r.Header.Get("Authorization") != ""
+
 	switch urlFormat {
 	case "json":
 		renderJSON(w, links)
@@ -49,6 +53,7 @@ func indexHandler(w http.ResponseWriter, r *http.Request) {
 		}
 
 		ctx := MultiTemplateContext{Links: links}
+		ctx.Authenticated = authenticated
 
 		err := indexTmpl.ExecuteTemplate(w, "base.html", ctx)
 		if err != nil {
@@ -78,6 +83,8 @@ func showHandler(w http.ResponseWriter, r *http.Request) {
 		}
 
 		ctx := SingleTemplateContext{Link: link}
+		ctx.Authenticated = true
+
 		err := showTmpl.ExecuteTemplate(w, "base.html", ctx)
 		if err != nil {
 			log.Printf("error rendering template: %s", err)

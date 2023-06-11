@@ -16,20 +16,11 @@
             <nav>
                 <a href="/">bookmarks</a>
                 <ul>
-                    <!-- todo
-                    <% if user_signed_in? %>
+                    {{ if .Authenticated }}
                     <li>
-                        <%= link_to "New link", new_link_path %>
+                        <a href="#">New link</a>
                     </li>
-                    <li>
-                        <%= button_to "Log out", destroy_user_session_path, method: :delete, class: "button-link" %>
-                    </li>
-                    <% else %>
-                    <li>
-                        <%= link_to "Log in", new_user_session_path %>
-                    </li>
-                    <% end %>
-                    -->
+                    {{ end }}
                 </ul>
             </nav>
         </header>
