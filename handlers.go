@@ -13,6 +13,18 @@ import (
 	"github.com/go-chi/chi/v5/middleware"
 )
 
+type TemplateContext struct{}
+
+type SingleTemplateContext struct {
+	TemplateContext
+	Link *Link
+}
+
+type MultiTemplateContext struct {
+	TemplateContext
+	Links *[]Link
+}
+
 var (
 	indexTmpl *template.Template //nolint:gochecknoglobals
 	showTmpl  *template.Template //nolint:gochecknoglobals
@@ -36,7 +48,9 @@ func indexHandler(w http.ResponseWriter, r *http.Request) {
 			indexTmpl = template.Must(template.ParseFiles("templates/index.html", "templates/base.html"))
 		}
 
-		err := indexTmpl.ExecuteTemplate(w, "base.html", links)
+		ctx := MultiTemplateContext{Links: links}
+
+		err := indexTmpl.ExecuteTemplate(w, "base.html", ctx)
 		if err != nil {
 			log.Printf("error rendering template: %s", err)
 		}
@@ -63,7 +77,8 @@ func showHandler(w http.ResponseWriter, r *http.Request) {
 			showTmpl = template.Must(template.ParseFiles("templates/show.html", "templates/base.html"))
 		}
 
-		err := showTmpl.ExecuteTemplate(w, "base.html", link)
+		ctx := SingleTemplateContext{Link: link}
+		err := showTmpl.ExecuteTemplate(w, "base.html", ctx)
 		if err != nil {
 			log.Printf("error rendering template: %s", err)
 		}

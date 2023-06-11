@@ -1,6 +1,6 @@
 {{ define "body" }}
 <div class="links">
-    {{ range . }}
+    {{ range .Links }}
     <div id="link_{{ .ID }}" class="link" data-controller="links">
         <a href="{{ .URL }}" class="main-link">
             {{ if .Title }}
