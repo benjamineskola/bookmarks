@@ -14,11 +14,14 @@
     <body>
         <header>
             <nav>
-                <a href="/">bookmarks</a>
+                <a href="/links/{{ if not .Authenticated }}public/{{ end }}">bookmarks</a>
                 <ul>
                     {{ if .Authenticated }}
                     <li>
                         <a href="#">New link</a>
+                    </li>
+                    <li>
+                        <a href="/links/public/">Public</a>
                     </li>
                     {{ end }}
                 </ul>
