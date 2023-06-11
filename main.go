@@ -4,6 +4,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strings"
 
 	"github.com/benjamineskola/bookmarks/database"
 	"github.com/go-chi/chi/v5"
@@ -37,9 +38,16 @@ func main() {
 
 	router.Route("/links", func(router chi.Router) {
 		router.Use(middleware.URLFormat)
-		router.Use(auth)
+		router.Use(middleware.Maybe(auth, func(r *http.Request) bool {
+			return !strings.HasPrefix(r.URL.Path, "/links/public")
+		}))
 
 		router.Get("/", indexHandler)
+		router.With(middleware.WithValue("onlyPublic", true)).Route("/public", func(router chi.Router) {
+			router.Get("/", indexHandler)
+			router.Get("/page/{page}", indexHandler)
+		})
+
 		router.Get("/page/{page}", indexHandler)
 		router.Post("/", noopHandler)
 

@@ -39,8 +39,16 @@ func noopHandler(w http.ResponseWriter, _ *http.Request) {
 
 func indexHandler(w http.ResponseWriter, r *http.Request) {
 	urlFormat, _ := r.Context().Value(middleware.URLFormatCtxKey).(string)
+	onlyPublic, _ := r.Context().Value("onlyPublic").(bool)
 	pageNumber, _ := strconv.Atoi(chi.URLParam(r, "page"))
-	links := GetLinks(database.DB, pageNumber, 0)
+
+	var links *[]Link
+
+	if onlyPublic {
+		links = GetPublicLinks(database.DB, pageNumber, 0)
+	} else {
+		links = GetLinks(database.DB, pageNumber, 0)
+	}
 
 	authenticated := r.Header.Get("Authorization") != ""
 
