@@ -16,7 +16,6 @@ func main() {
 	router.Use(middleware.GetHead)
 	router.Use(middleware.Recoverer)
 	router.Use(middleware.Compress(5))
-	router.Use(middleware.URLFormat)
 
 	database.DB = database.InitDatabase()
 
@@ -25,12 +24,19 @@ func main() {
 		log.Fatalf("failed to migrate database: %s", err)
 	}
 
-	router.Get("/links", indexHandler)
-	router.Get("/links/page/{page}", indexHandler)
-	router.Get("/links/{id}", showHandler)
-	router.Put("/links/{id}", noopHandler)
-	router.Delete("/links/{id}", noopHandler)
-	router.Post("/links", noopHandler)
+	router.Route("/links", func(router chi.Router) {
+		router.Use(middleware.URLFormat)
+
+		router.Get("/", indexHandler)
+		router.Get("/page/{page}", indexHandler)
+		router.Post("/", noopHandler)
+
+		router.Route("/{id}/", func(router chi.Router) {
+			router.Get("/", showHandler)
+			router.Put("/", noopHandler)
+			router.Delete("/", noopHandler)
+		})
+	})
 
 	err = http.ListenAndServe(":8080", router)
 	if err != nil {
