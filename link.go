@@ -16,15 +16,17 @@ type Link struct {
 	Description string
 	SavedAt     time.Time
 	ReadAt      time.Time
+	Public      bool
 }
 
-func NewLink(urlString string, title string, description string) *Link {
+func NewLink(urlString string, title string, description string, public bool) *Link {
 	parsedURL, _ := url.Parse(urlString)
 	gormURL := datatypes.URL(*parsedURL)
 	link := Link{ //nolint:exhaustruct
 		URL:         &gormURL,
 		Title:       title,
 		Description: description,
+		Public:      public,
 	}
 
 	return &link
@@ -44,6 +46,24 @@ func GetLinks(db *gorm.DB, page int, count int) *[]Link {
 	offset := (page - 1) * count
 
 	db.Order("saved_at desc").Limit(count).Offset(offset).Find(&links)
+
+	return &links
+}
+
+func GetPublicLinks(db *gorm.DB, page int, count int) *[]Link {
+	var links []Link
+
+	if page < 1 {
+		page = 1
+	}
+
+	if count < 1 {
+		count = 50
+	}
+
+	offset := (page - 1) * count
+
+	db.Where("public = ?", true).Order("saved_at desc").Limit(count).Offset(offset).Find(&links)
 
 	return &links
 }

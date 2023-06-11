@@ -25,7 +25,7 @@ func TestMain(m *testing.M) {
 func TestLink(t *testing.T) {
 	t.Parallel()
 
-	link := NewLink("http://example.com/", "Example Website", "This is just an example.")
+	link := NewLink("http://example.com/", "Example Website", "This is just an example.", false)
 
 	assert.Equal(t, "http://example.com/", link.URL.String())
 }

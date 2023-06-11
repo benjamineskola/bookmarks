@@ -1,0 +1,1 @@
+ALTER TABLE links REMOVE COLUMN public;
