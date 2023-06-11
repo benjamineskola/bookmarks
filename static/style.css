@@ -1,0 +1,129 @@
+/*
+ * This is a manifest file that'll be compiled into application.css, which will include all the files
+ * listed below.
+ *
+ * Any CSS (and SCSS, if configured) file within this directory, lib/assets/stylesheets, or any plugin's
+ * vendor/assets/stylesheets directory can be referenced here using a relative path.
+ *
+ * You're free to add application-wide styles to this file and they'll appear at the bottom of the
+ * compiled file so the styles you add here take precedence over styles defined in any other CSS
+ * files in this directory. Styles in this file should be added after the last require_* statement.
+ * It is generally better to create a new file per style scope.
+ *
+ *= require_tree .
+ *= require_self
+ */
+
+:root {
+  font-family: "Inter", sans-serif;
+
+  --text-spacing: 1.25em;
+  --text-width: min(72ch, calc(100vw - (var(--text-spacing) * 2)));
+
+  --text-colour: rgb(18, 21, 23);
+  --link-colour: hsl(240, 100%, 30%);
+  --unread-link-colour: hsl(0, 100%, 30%);
+}
+@supports (font-variation-settings: normal) {
+  :root {
+    font-family: "Inter var", sans-serif;
+  }
+}
+
+body {
+  display: flex;
+  flex-direction: column;
+
+  margin-inline: var(--text-spacing);
+
+  color: var(--text-colour);
+  background-color: hsl(0 0% 98%);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --text-colour: hsl(0 0% 98%);
+    --link-colour: hsl(240, 100%, 70%);
+    --unread-link-colour: hsl(0, 100%, 70%);
+  }
+  body {
+    background-color: rgb(18, 21, 23);
+  }
+}
+
+main,
+header nav {
+  width: var(--text-width);
+  margin-inline: auto;
+}
+
+input[type="text"],
+textarea {
+  width: var(--text-width);
+}
+
+a:any-link,
+a:visited {
+  color: var(--link-colour);
+}
+
+.link-unread .main-link:any-link,
+.link-unread .main-link:visited {
+  color: var(--unread-link-colour);
+}
+
+.button-link {
+  border: none;
+  background-color: inherit;
+  border: none;
+  font-size: inherit;
+  text-decoration: underline;
+  color: var(--link-colour);
+  padding: 0;
+}
+
+.pagination {
+  margin-top: var(--text-spacing);
+  text-align: center;
+}
+
+#links > * + * {
+  margin-block-start: var(--text-spacing);
+}
+
+.link + .link {
+  padding-top: calc(var(--text-spacing) / 2);
+  border-top: 1px dotted grey;
+}
+
+form.button_to {
+  display: inline;
+}
+
+header nav {
+  display: flex;
+  align-items: center;
+}
+
+header nav a {
+  margin-right: auto;
+}
+
+header nav ul {
+  margin-left: auto;
+  list-style: none;
+}
+
+header nav li {
+  display: inline-block;
+  margin-inline-start: 0.5rem;
+}
+
+.meta-items {
+  display: flex;
+  margin-block-start: 0.25em;
+}
+
+.meta-item + .meta-item {
+  padding-inline-start: 1em;
+}
