@@ -17,5 +17,6 @@
     {{ if ne .Link.ID 0 }}
     <input type="hidden" name="Link.ID" value="{{.Link.ID}}">
     {{ end }}
+    {{ .CSRFTemplateTag }}
 </form>
 {{ end }}
