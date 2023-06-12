@@ -86,6 +86,12 @@ func (l Link) HasReadDate() bool {
 
 func (l Link) Save(db *gorm.DB) error {
 	var result *gorm.DB
-	result = db.Create(&l)
+
+	if l.ID == 0 {
+		result = db.Create(&l)
+	} else {
+		result = db.Save(&l)
+	}
+
 	return result.Error
 }
