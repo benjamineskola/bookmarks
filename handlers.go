@@ -115,10 +115,16 @@ func showHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func newFormHandler(w http.ResponseWriter, _ *http.Request) {
+func formHandler(w http.ResponseWriter, r *http.Request) {
+	linkID, _ := strconv.Atoi(chi.URLParam(r, "id"))
 	formTmpl := template.Must(template.ParseFiles("templates/form.html", "templates/base.html"))
 
-	ctx := SingleTemplateContext{Link: nil} //nolint:exhaustruct
+	link := &Link{}
+	if linkID != 0 {
+		link = GetLinkByID(database.DB, uint(linkID))
+	}
+
+	ctx := SingleTemplateContext{Link: link} //nolint:exhaustruct
 	ctx.Authenticated = true
 
 	err := formTmpl.ExecuteTemplate(w, "base.html", ctx)
@@ -127,8 +133,15 @@ func newFormHandler(w http.ResponseWriter, _ *http.Request) {
 	}
 }
 
-func createHandler(w http.ResponseWriter, r *http.Request) {
+func saveHandler(w http.ResponseWriter, r *http.Request) {
+	linkID, _ := strconv.Atoi(chi.URLParam(r, "id"))
 	data := &LinkRequest{} //nolint:exhaustruct
+
+	if linkID != 0 {
+		data.Link = GetLinkByID(database.DB, uint(linkID))
+	}
+	log.Printf("%s", data)
+
 	if err := render.Bind(r, data); err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 

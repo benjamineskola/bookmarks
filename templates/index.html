@@ -29,7 +29,7 @@
             </span>
             {{ end }}
             {{ if $.Authenticated }}
-            <span class="meta-item">edit</span>
+            <a href="/links/{{.ID}}/edit" class="meta-item">edit</a>
             <span class="meta-item">delete</span>
             <span class="meta-item">mark as read</span>
             {{ end }}

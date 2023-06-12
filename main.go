@@ -51,13 +51,15 @@ func main() {
 
 		router.Get("/page/{page}", indexHandler)
 
-		router.Get("/new", newFormHandler)
-		router.Post("/", createHandler)
+		router.Get("/new", formHandler)
+		router.Post("/", saveHandler)
 
 		router.Route("/{id}/", func(router chi.Router) {
 			router.Get("/", showHandler)
-			router.Put("/", noopHandler)
+			router.Put("/", saveHandler)
+			router.Post("/", saveHandler)
 			router.Delete("/", noopHandler)
+			router.Get("/edit", formHandler)
 		})
 	})
 
