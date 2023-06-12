@@ -10,6 +10,7 @@ import (
 	"github.com/benjamineskola/bookmarks/database"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+	"github.com/gorilla/csrf"
 )
 
 func main() {
@@ -19,6 +20,31 @@ func main() {
 	router.Use(middleware.GetHead)
 	router.Use(middleware.Recoverer)
 	router.Use(middleware.Compress(5))
+
+	host := os.Getenv("HOST")
+	port := os.Getenv("PORT")
+	csrfKey := []byte(os.Getenv("CSRF_KEY"))
+
+	if host == "" {
+		host = "0.0.0.0"
+	}
+
+	if port == "" {
+		port = "8080"
+	}
+
+	if len(csrfKey) == 0 {
+		log.Fatalf("No CSRF_KEY set")
+	} else if len(csrfKey) != 32 {
+		log.Fatalf("CSRF_KEY must be 32 bytes")
+	}
+
+	csrfMiddleware := csrf.Protect(csrfKey,
+		csrf.Secure(host != "127.0.0.1"),
+		csrf.Path("/"),
+	)
+
+	router.Use(csrfMiddleware)
 
 	expectedUser := os.Getenv("AUTH_USER")
 	expectedPass := os.Getenv("AUTH_PASSWORD")
@@ -65,17 +91,6 @@ func main() {
 
 	fs := http.FileServer(http.Dir("static"))
 	router.Handle("/static/*", http.StripPrefix("/static/", fs))
-
-	host := os.Getenv("HOST")
-	port := os.Getenv("PORT")
-
-	if host == "" {
-		host = "0.0.0.0"
-	}
-
-	if port == "" {
-		port = "8080"
-	}
 
 	log.Printf("listening on %s:%s", host, port)
 

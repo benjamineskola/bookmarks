@@ -2,22 +2,24 @@ package main
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"html/template"
 	"log"
 	"net/http"
+	"net/url"
 	"strconv"
 	"time"
 
 	"github.com/benjamineskola/bookmarks/database"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
-	"github.com/go-chi/render"
+	"github.com/gorilla/csrf"
+	"gorm.io/datatypes"
 )
 
 type TemplateContext struct {
-	Authenticated bool
+	Authenticated   bool
+	CSRFTemplateTag template.HTML
 }
 
 type SingleTemplateContext struct {
@@ -28,18 +30,6 @@ type SingleTemplateContext struct {
 type MultiTemplateContext struct {
 	TemplateContext
 	Links *[]Link
-}
-
-type LinkRequest struct {
-	*Link
-}
-
-func (l *LinkRequest) Bind(_ *http.Request) error {
-	if l.Link == nil {
-		return errors.New("link not defined? what")
-	}
-
-	return nil
 }
 
 var (
@@ -126,6 +116,7 @@ func formHandler(w http.ResponseWriter, r *http.Request) {
 
 	ctx := SingleTemplateContext{Link: link} //nolint:exhaustruct
 	ctx.Authenticated = true
+	ctx.CSRFTemplateTag = csrf.TemplateField(r)
 
 	err := formTmpl.ExecuteTemplate(w, "base.html", ctx)
 	if err != nil {
@@ -135,20 +126,19 @@ func formHandler(w http.ResponseWriter, r *http.Request) {
 
 func saveHandler(w http.ResponseWriter, r *http.Request) {
 	linkID, _ := strconv.Atoi(chi.URLParam(r, "id"))
-	data := &LinkRequest{} //nolint:exhaustruct
 
+	link := &Link{} //nolint:exhaustruct
 	if linkID != 0 {
-		data.Link = GetLinkByID(database.DB, uint(linkID))
-	}
-	log.Printf("%s", data)
-
-	if err := render.Bind(r, data); err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-
-		return
+		link = GetLinkByID(database.DB, uint(linkID))
 	}
 
-	link := data.Link
+	r.ParseForm()
+
+	parsedURL, _ := url.Parse(r.FormValue("Link.URL"))
+	gormURL := datatypes.URL(*parsedURL)
+	link.URL = &gormURL
+	link.Title = r.FormValue("Link.Title")
+	link.Description = r.FormValue("Link.Description")
 
 	if link.SavedAt.IsZero() {
 		link.SavedAt = time.Now()
