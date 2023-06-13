@@ -35,3 +35,18 @@ func TestLink(t *testing.T) {
 
 	assert.Equal(t, "http://example.com/", link.URL.String())
 }
+
+func TestLinkTags(t *testing.T) {
+	t.Parallel()
+
+	link := NewLink("http://example.com/", "Example Website", "This is just an example.", false)
+	tags := []string{"foo", "bar"}
+	tl := TagList(tags)
+	link.Tags = &tl
+
+	id, _ := link.Save(database.DB)
+
+	actual := GetLinkByID(database.DB, id)
+	expected := TagList([]string{"foo", "bar"})
+	assert.Equal(t, &expected, actual.Tags)
+}

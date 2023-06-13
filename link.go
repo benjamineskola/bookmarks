@@ -1,12 +1,39 @@
 package main
 
 import (
+	"database/sql/driver"
+	"errors"
+	"fmt"
 	"net/url"
+	"strings"
 	"time"
 
 	"gorm.io/datatypes"
 	"gorm.io/gorm"
 )
+
+type TagList []string
+
+func (tl *TagList) Scan(src any) error {
+	var source string
+	switch s := src.(type) {
+	case string:
+		source = s
+	default:
+		return errors.New("Incompatible type")
+	}
+
+	trimmed := strings.Trim(source, "{}")
+	split := strings.Split(trimmed, ",")
+
+	*tl = split
+
+	return nil
+}
+
+func (tl TagList) Value() (driver.Value, error) {
+	return fmt.Sprintf("{%s}", strings.Join(tl, ",")), nil
+}
 
 type Link struct {
 	gorm.Model
@@ -17,7 +44,7 @@ type Link struct {
 	SavedAt     time.Time
 	ReadAt      time.Time
 	Public      bool
-	Tags        string
+	Tags        *TagList
 }
 
 func NewLink(urlString string, title string, description string, public bool) *Link {
