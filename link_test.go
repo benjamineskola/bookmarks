@@ -19,7 +19,13 @@ func TestMain(m *testing.M) {
 		log.Fatalf("failed to migrate database: %s", err)
 	}
 
-	os.Exit(m.Run())
+	database.DB.Exec("DELETE FROM links")
+
+	result := m.Run()
+
+	database.DB.Exec("DELETE FROM links")
+
+	os.Exit(result)
 }
 
 func TestLink(t *testing.T) {
