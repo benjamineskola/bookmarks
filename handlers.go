@@ -140,6 +140,18 @@ func saveHandler(w http.ResponseWriter, r *http.Request) {
 	link.Title = r.FormValue("Link.Title")
 	link.Description = r.FormValue("Link.Description")
 
+	if link.IsRead() {
+		if r.FormValue("mark_unread") == "on" {
+			link.ReadAt = time.Time{}
+		}
+	} else {
+		if r.FormValue("mark_read") == "now" {
+			link.ReadAt = time.Now()
+		} else if r.FormValue("mark_read") == "sometime" {
+			link.ReadAt = time.Unix(0, 0)
+		}
+	}
+
 	if link.SavedAt.IsZero() {
 		link.SavedAt = time.Now()
 	}
