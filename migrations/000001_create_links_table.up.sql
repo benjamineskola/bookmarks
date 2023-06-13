@@ -1,5 +1,5 @@
 CREATE TABLE IF NOT EXISTS "links" (
-    id uint64,
+    id integer PRIMARY KEY,
     created_at datetime,
     updated_at datetime,
     deleted_at datetime,
@@ -7,8 +7,7 @@ CREATE TABLE IF NOT EXISTS "links" (
     title text,
     description text,
     saved_at datetime,
-    read_at datetime,
-    PRIMARY KEY (id)
+    read_at datetime
 );
 
 CREATE INDEX idx_links_url ON links (url);
