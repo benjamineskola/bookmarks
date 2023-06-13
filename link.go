@@ -17,6 +17,7 @@ type Link struct {
 	SavedAt     time.Time
 	ReadAt      time.Time
 	Public      bool
+	Tags        string
 }
 
 func NewLink(urlString string, title string, description string, public bool) *Link {
