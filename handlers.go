@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"html/template"
 	"log"
+	"math"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -20,6 +21,10 @@ import (
 type TemplateContext struct {
 	Authenticated   bool
 	CSRFTemplateTag template.HTML
+	CurrentPage     int
+	LastPage        int
+	PrevPage        int
+	NextPage        int
 }
 
 type SingleTemplateContext struct {
@@ -47,6 +52,10 @@ func indexHandler(w http.ResponseWriter, r *http.Request) {
 	onlyPublic, _ := r.Context().Value("onlyPublic").(bool)
 	pageNumber, _ := strconv.Atoi(chi.URLParam(r, "page"))
 
+	if pageNumber == 0 {
+		pageNumber = 1
+	}
+
 	var links *[]Link
 
 	if onlyPublic {
@@ -67,6 +76,13 @@ func indexHandler(w http.ResponseWriter, r *http.Request) {
 
 		ctx := MultiTemplateContext{Links: links} //nolint:exhaustruct
 		ctx.Authenticated = authenticated
+		ctx.CurrentPage = pageNumber
+		ctx.NextPage = pageNumber + 1
+		ctx.PrevPage = pageNumber - 1
+
+		var totalLinks int64
+		database.DB.Model(&Link{}).Count(&totalLinks)
+		ctx.LastPage = int(math.Ceil(float64(totalLinks) / 50))
 
 		err := indexTmpl.ExecuteTemplate(w, "base.html", ctx)
 		if err != nil {

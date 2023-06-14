@@ -37,4 +37,25 @@
     </div>
     {{ end }}
 </div>
+<nav class="pagination">
+    current page is {{ .CurrentPage }} of {{ .LastPage}}
+    <br>
+    {{ if gt .CurrentPage 1 }}
+    <a href="/links/">first</a>
+{{ else }}
+    <span>first</span>
+    {{ end }}
+    {{ if gt .PrevPage 1 }}
+    <a href="/links/page/{{.PrevPage}}">prev</a>
+    {{ end }}
+    <a href="#">{{ .CurrentPage }}</a>
+    {{ if lt .NextPage  .LastPage }}
+    <a href="/links/page/{{.NextPage}}">next</a>
+    {{ end }}
+    {{ if lt .CurrentPage .LastPage }}
+    <a href="/links/page/{{ .LastPage }}">last</a>
+{{ else }}
+    <span>last</span>
+    {{ end }}
+</nav>
 {{ end }}
