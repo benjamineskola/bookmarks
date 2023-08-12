@@ -23,6 +23,7 @@
   --text-colour: rgb(18, 21, 23);
   --link-colour: hsl(240, 100%, 30%);
   --unread-link-colour: hsl(0, 100%, 30%);
+  --muted-colour: hsl(204, 12.2%, 50%);
 }
 @supports (font-variation-settings: normal) {
   :root {
@@ -126,4 +127,8 @@ header nav li {
 
 .meta-item + .meta-item {
   padding-inline-start: 1em;
+}
+
+.muted {
+  color: var(--muted-colour);
 }
