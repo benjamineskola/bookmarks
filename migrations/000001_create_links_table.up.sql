@@ -10,5 +10,5 @@ CREATE TABLE IF NOT EXISTS "links" (
     read_at datetime
 );
 
-CREATE INDEX idx_links_url ON links (url);
+CREATE UNIQUE INDEX idx_links_url ON links (url);
 CREATE INDEX idx_links_deleted_at ON links (deleted_at);
