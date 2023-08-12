@@ -1,35 +1,35 @@
 <!DOCTYPE html>
 <html>
-    <head>
-        <title>Bookmarks</title>
-        <meta name="viewport" content="width=device-width,initial-scale=1">
-        <!-- todo
+  <head>
+    <title>Bookmarks</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <!-- todo
         <%= csrf_meta_tags %>
         <%= csp_meta_tag %>
         -->
-        <link rel="preconnect" href="https://rsms.me/">
-        <link rel="stylesheet" href="https://rsms.me/inter/inter.css">
-        <link rel="stylesheet" href="/static/style.css">
-    </head>
-    <body>
-        <header>
-            <nav>
-                <a href="/links/{{ if not .Authenticated }}public/{{ end }}">bookmarks</a>
-                <ul>
-                    {{ if .Authenticated }}
-                    <li>
-                        <a href="#">New link</a>
-                    </li>
-                    <li>
-                        <a href="/links/public/">Public</a>
-                    </li>
-                    {{ end }}
-                </ul>
-            </nav>
-        </header>
-        <main>
-            {{ block "body" . -}}
-            {{- end }}
-        </main>
-    </body>
+    <link rel="preconnect" href="https://rsms.me/">
+    <link rel="stylesheet" href="https://rsms.me/inter/inter.css">
+    <link rel="stylesheet" href="/static/style.css">
+  </head>
+  <body>
+    <header>
+      <nav>
+        <a href="/links/{{ if not .Authenticated }}public/{{ end }}">bookmarks</a>
+        <ul>
+          {{ if .Authenticated }}
+            <li>
+              <a href="#">New link</a>
+            </li>
+            <li>
+              <a href="/links/public/">Public</a>
+            </li>
+          {{ end }}
+        </ul>
+      </nav>
+    </header>
+    <main>
+      {{ block "body" . -}}
+      {{- end }}
+    </main>
+  </body>
 </html>

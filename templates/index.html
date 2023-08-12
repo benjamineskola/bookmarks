@@ -1,61 +1,61 @@
 {{ define "body" }}
-<div class="links">
+  <div class="links">
     {{ range .Links }}
-    <div id="link_{{ .ID }}"
-         class="link link-{{ if not .IsRead }}un{{ end }}read"
-         data-controller="links">
+      <div id="link_{{ .ID }}"
+           class="link link-{{ if not .IsRead }}un{{ end }}read"
+           data-controller="links">
         <a href="{{ .URL }}" class="main-link">
-            {{ if .Title }}
+          {{ if .Title }}
             {{ .Title }}
-        {{ else }}
+          {{ else }}
             {{ .URL }}
-            {{ end }}
+          {{ end }}
         </a>
         <br>
         {{ if .Description }}
-        <span class="description">{{ .Description }}</span>
+          <span class="description">{{ .Description }}</span>
         {{ end }}
         <!-- TODO tags -->
         <br>
         <div class="meta-items">
-            {{ if not .SavedAt.IsZero }}
+          {{ if not .SavedAt.IsZero }}
             <span class="meta-item">saved {{ .SavedAt.Format "2 Jan, 2006" }}</span>
-            {{ end }}
-            {{ if .IsRead }}
+          {{ end }}
+          {{ if .IsRead }}
             <span class="meta-item">read
-                {{ if .HasReadDate }}
+              {{ if .HasReadDate }}
                 {{ .ReadAt.Format "2 Jan, 2006"}}
-                {{ end }}
+              {{ end }}
             </span>
-            {{ end }}
-            {{ if $.Authenticated }}
+          {{ end }}
+          {{ if $.Authenticated }}
             <a href="/links/{{.ID}}/edit" class="meta-item">edit</a>
             <span class="meta-item">delete</span>
             <span class="meta-item">mark as read</span>
-            {{ end }}
+          {{ end }}
         </div>
-    </div>
+      </div>
     {{ end }}
-</div>
-<nav class="pagination">
+  </div>
+  <nav class="pagination">
     current page is {{ .CurrentPage }} of {{ .LastPage}}
     <br>
     {{ if gt .CurrentPage 1 }}
-    <a href="/links/">first</a>
-{{ else }}
-    <span>first</span>
+      <a href="/links/">first</a>
+    {{ else }}
+      <span>first</span>
     {{ end }}
     {{ if gt .PrevPage 1 }}
-    <a href="/links/page/{{.PrevPage}}">prev</a>
+      <a href="/links/page/{{.PrevPage}}">prev</a>
     {{ end }}
     <a href="#">{{ .CurrentPage }}</a>
     {{ if lt .NextPage  .LastPage }}
-    <a href="/links/page/{{.NextPage}}">next</a>
+      <a href="/links/page/{{.NextPage}}">next</a>
     {{ end }}
     {{ if lt .CurrentPage .LastPage }}
-    <a href="/links/page/{{ .LastPage }}">last</a>
-{{ else }}
-    <span>last</span>
+      <a href="/links/page/{{ .LastPage }}">last</a>
+    {{ else }}
+      <span>last</span>
     {{ end }}
-</nav>
+  </nav>
 {{ end }}

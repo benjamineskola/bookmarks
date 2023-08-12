@@ -1,6 +1,6 @@
 {{ define "body" }}
-<form action="/links/{{ if ne .Link.ID 0 }}{{ .Link.ID }}{{ end }}/"
-      method="POST">
+  <form action="/links/{{ if ne .Link.ID 0 }}{{ .Link.ID }}{{ end }}/"
+        method="POST">
     URL
     <input type="text"
            name="Link.URL"
@@ -14,21 +14,21 @@
     Description <textarea name="Link.Description">{{ if .Link.Description }}{{ .Link.Description }}{{ end }}</textarea>
     <br>
     {{ if .Link.IsRead }}
-    Mark unread:
-    <input type="checkbox" name="mark_unread">
-{{ else }}
-    Mark read now:
-    <input type="radio" name="mark_read" value="now">
-    or previously:
-    <input type="radio" name="mark_read" value="sometime">
-    or ignore:
-    <input type="radio" name="mark_read" value="ignore" checked>
+      Mark unread:
+      <input type="checkbox" name="mark_unread">
+    {{ else }}
+      Mark read now:
+      <input type="radio" name="mark_read" value="now">
+      or previously:
+      <input type="radio" name="mark_read" value="sometime">
+      or ignore:
+      <input type="radio" name="mark_read" value="ignore" checked>
     {{ end }}
     <br>
     <input type="submit">
     {{ if ne .Link.ID 0 }}
-    <input type="hidden" name="Link.ID" value="{{.Link.ID}}">
+      <input type="hidden" name="Link.ID" value="{{.Link.ID}}">
     {{ end }}
     {{ .CSRFTemplateTag }}
-</form>
+  </form>
 {{ end }}
