@@ -25,6 +25,13 @@
       <input type="radio" name="mark_read" value="ignore" checked>
     {{ end }}
     <br>
+    Public
+    <input type="checkbox"
+           name="Link.Public"
+           {{ if .Link.Public }}
+           checked
+           {{ end }}>
+    <br>
     <input type="submit">
     {{ if ne .Link.ID 0 }}
       <input type="hidden" name="Link.ID" value="{{.Link.ID}}">

@@ -155,6 +155,7 @@ func saveHandler(w http.ResponseWriter, r *http.Request) {
 	link.URL = &gormURL
 	link.Title = r.FormValue("Link.Title")
 	link.Description = r.FormValue("Link.Description")
+	link.Public = r.FormValue("Link.Public") == "on"
 
 	if link.IsRead() {
 		if r.FormValue("mark_unread") == "on" {
