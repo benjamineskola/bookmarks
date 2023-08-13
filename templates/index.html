@@ -16,7 +16,12 @@
         {{ if .Description }}
           <span class="description">{{ .Description }}</span>
         {{ end }}
-        <!-- TODO tags -->
+        {{ if .Tags }}
+          <br>
+          {{ range .Tags }}
+            <span class="tag">{{ . }}</span>
+          {{ end }}
+        {{ end }}
         <br>
         <div class="meta-items">
           {{ if not .SavedAt.IsZero }}
