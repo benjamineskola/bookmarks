@@ -105,7 +105,7 @@ def import_instapaper_csv(csvpath: str, dbpath: str) -> None:
             read_at = 0 if item["Folder"] == "Archive" else None
             tags = {"instapaper"}
 
-            if item["Folder"] != "Archive":
+            if item["Folder"] not in ["Archive", "Unread"]:
                 tags.add(item["Folder"].lower())
 
             entry = dict(
