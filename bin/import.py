@@ -34,6 +34,11 @@ def normalise_url(url: str) -> str:
         parsed._replace(netloc=parsed.netloc.removeprefix("www."))
     if parsed.netloc in url_normalisations["replace_domain"]:
         parsed._replace(netloc=url_normalisations["replace_domain"][parsed.netloc])
+
+    if parsed.netloc == "medium.com" or parsed.netloc.endswith(".medium.com"):
+        # special case
+        parsed._replace(netloc="scribe.rip")
+
     if parsed.netloc in url_normalisations["force_https"]:
         parsed._replace(scheme="https")
     return parsed.geturl()
