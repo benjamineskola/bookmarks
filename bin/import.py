@@ -3,6 +3,40 @@ import csv
 import datetime
 import sqlite3
 import sys
+from typing import Any
+from urllib.parse import urlparse
+
+url_normalisations: dict[str, Any] = {
+    "add_www": {
+        "theguardian.com",
+    },
+    "remove_www": {
+        "www.jacobin.com",
+        "www.jacobinmag.com",
+        "www.tribunemag.co.uk",
+    },
+    "replace_domain": {
+        "jacobinmag.com": "jacobin.com",
+    },
+    "force_https": {
+        "www.theguardian.com",
+        "jacobin.com",
+        "tribunemag.co.uk",
+    },
+}
+
+
+def normalise_url(url: str) -> str:
+    parsed = urlparse(url)
+    if parsed.netloc in url_normalisations["add_www"]:
+        parsed._replace(netloc="www." + parsed.netloc)
+    if parsed.netloc in url_normalisations["remove_www"]:
+        parsed._replace(netloc=parsed.netloc.removeprefix("www."))
+    if parsed.netloc in url_normalisations["replace_domain"]:
+        parsed._replace(netloc=url_normalisations["replace_domain"][parsed.netloc])
+    if parsed.netloc in url_normalisations["force_https"]:
+        parsed._replace(scheme="https")
+    return parsed.geturl()
 
 
 def import_dropbox_csv(csvpath: str, dbpath: str, read: bool) -> None:
@@ -14,7 +48,7 @@ def import_dropbox_csv(csvpath: str, dbpath: str, read: bool) -> None:
         reader = csv.DictReader(csvpath, fieldnames=("URL", "Timestamp"))
         for item in reader:
             link = {
-                "url": item["URL"],
+                "url": normalise_url(item["URL"]),
                 "date": datetime.datetime.strptime(
                     item["Timestamp"].removesuffix("AM").removesuffix("PM"),
                     "%B %d, %Y at %H:%M",
@@ -59,7 +93,7 @@ def import_instapaper_csv(csvpath: str, dbpath: str) -> None:
     with open(csvpath, newline="") as csvpath:
         reader = csv.DictReader(csvpath)
         for item in reader:
-            url = item["URL"]
+            url = normalise_url(item["URL"])
             title = item["Title"]
             description = item["Selection"]
             saved_at = datetime.datetime.fromtimestamp(int(item["Timestamp"]))
