@@ -29,18 +29,21 @@ url_normalisations: dict[str, Any] = {
 def normalise_url(url: str) -> str:
     parsed = urlparse(url)
     if parsed.netloc in url_normalisations["add_www"]:
-        parsed._replace(netloc="www." + parsed.netloc)
+        parsed = parsed._replace(netloc="www." + parsed.netloc)
     if parsed.netloc in url_normalisations["remove_www"]:
-        parsed._replace(netloc=parsed.netloc.removeprefix("www."))
+        parsed = parsed._replace(netloc=parsed.netloc.removeprefix("www."))
     if parsed.netloc in url_normalisations["replace_domain"]:
-        parsed._replace(netloc=url_normalisations["replace_domain"][parsed.netloc])
+        parsed = parsed._replace(
+            netloc=url_normalisations["replace_domain"][parsed.netloc]
+        )
 
     if parsed.netloc == "medium.com" or parsed.netloc.endswith(".medium.com"):
         # special case
-        parsed._replace(netloc="scribe.rip")
+        parsed = parsed._replace(netloc="scribe.rip")
 
     if parsed.netloc in url_normalisations["force_https"]:
-        parsed._replace(scheme="https")
+        parsed = parsed._replace(scheme="https")
+
     return parsed.geturl()
 
 
