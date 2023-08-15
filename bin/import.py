@@ -47,6 +47,84 @@ def normalise_url(url: str) -> str:
     return parsed.geturl()
 
 
+def create_or_update(
+    db: sqlite3.Connection,
+    url: str,
+    tags: set[str],
+    title: str,
+    description: str,
+    read_at: datetime,
+    saved_at: datetime,
+    now: datetime,
+) -> None:
+    cursor = db.cursor()
+    entry = dict(
+        cursor.execute("SELECT * FROM links WHERE url=?", (url,)).fetchone() or {}
+    )
+
+    if entry:
+        changed = False
+
+        for tag in entry["tags"].lower().strip("{}").split(","):
+            if tag == "instapaper":
+                continue
+            tags.add(tag)
+        for tag in tags:
+            if tag not in entry["tags"].lower().strip("{}").split(","):
+                changed = True
+                entry["tags"] = "{" + (",".join(tags)) + "}"
+                break
+
+        if entry["title"] != title:
+            entry["title"] = title
+            changed = True
+        if entry["description"] != description:
+            entry["description"] = description
+            changed = True
+        if str(entry["read_at"]) != str(read_at):
+            entry["read_at"] = read_at
+            changed = True
+        if str(entry["saved_at"]) != str(saved_at):
+            entry["saved_at"] = saved_at
+            changed = True
+
+        if changed:
+            entry["updated_at"] = now
+
+            cursor.execute(
+                """UPDATE links SET
+                        url=:url,
+                        created_at=:created_at,
+                        updated_at=:updated_at,
+                        saved_at=:saved_at,
+                        read_at=:read_at,
+                        title=:title,
+                        description=:description,
+                        tags=:tags
+                        WHERE url=:url;""",
+                entry,
+            )
+    else:
+        entry = {
+            "url": url,
+            "title": title,
+            "description": description,
+            "saved_at": saved_at,
+            "read_at": read_at,
+            "tags": "{" + (",".join(tags)) + "}",
+            "created_at": now,
+            "updated_at": now,
+        }
+        cursor.execute(
+            """INSERT INTO links
+                    (url, created_at, updated_at, saved_at, read_at, title, description, tags)
+                    VALUES(:url, :created_at, :updated_at, :saved_at, :read_at, :title, :description, :tags);""",
+            entry,
+        )
+
+    db.commit()
+
+
 def import_dropbox_csv(csvpath: str, dbpath: str, read: bool) -> None:
     db = sqlite3.connect(dbpath)
     cursor = db.cursor()
@@ -94,7 +172,6 @@ def import_dropbox_csv(csvpath: str, dbpath: str, read: bool) -> None:
 def import_instapaper_csv(csvpath: str, dbpath: str) -> None:
     db = sqlite3.connect(dbpath)
     db.row_factory = sqlite3.Row
-    cursor = db.cursor()
 
     now = datetime.datetime.now()
 
@@ -111,72 +188,7 @@ def import_instapaper_csv(csvpath: str, dbpath: str) -> None:
             if item["Folder"] not in ["Archive", "Unread"]:
                 tags.add(item["Folder"].lower())
 
-            entry = dict(
-                cursor.execute("SELECT * FROM links WHERE url=?", (url,)).fetchone()
-                or {}
-            )
-
-            if entry:
-                changed = False
-
-                for tag in entry["tags"].lower().strip("{}").split(","):
-                    if tag == "instapaper":
-                        continue
-                    tags.add(tag)
-                for tag in tags:
-                    if tag not in entry["tags"].lower().strip("{}").split(","):
-                        changed = True
-                        entry["tags"] = "{" + (",".join(tags)) + "}"
-                        break
-
-                if entry["title"] != title:
-                    entry["title"] = title
-                    changed = True
-                if entry["description"] != description:
-                    entry["description"] = description
-                    changed = True
-                if str(entry["read_at"]) != str(read_at):
-                    entry["read_at"] = read_at
-                    changed = True
-                if str(entry["saved_at"]) != str(saved_at):
-                    entry["saved_at"] = saved_at
-                    changed = True
-
-                if changed:
-                    entry["updated_at"] = now
-
-                    cursor.execute(
-                        """UPDATE links SET
-                        url=:url,
-                        created_at=:created_at,
-                        updated_at=:updated_at,
-                        saved_at=:saved_at,
-                        read_at=:read_at,
-                        title=:title,
-                        description=:description,
-                        tags=:tags
-                        WHERE url=:url;""",
-                        entry,
-                    )
-            else:
-                entry = {
-                    "url": url,
-                    "title": title,
-                    "description": description,
-                    "saved_at": saved_at,
-                    "read_at": read_at,
-                    "tags": "{" + (",".join(tags)) + "}",
-                    "created_at": now,
-                    "updated_at": now,
-                }
-                cursor.execute(
-                    """INSERT INTO links
-                    (url, created_at, updated_at, saved_at, read_at, title, description, tags)
-                    VALUES(:url, :created_at, :updated_at, :saved_at, :read_at, :title, :description, :tags);""",
-                    entry,
-                )
-
-            db.commit()
+            create_or_update(db, url, tags, title, description, read_at, saved_at, now)
 
 
 if __name__ == "__main__":
