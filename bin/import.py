@@ -23,6 +23,7 @@ url_normalisations: dict[str, Any] = {
         "www.theguardian.com",
         "jacobin.com",
         "tribunemag.co.uk",
+        "newsocialist.org.uk",
     },
 }
 
