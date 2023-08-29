@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"log"
 	"net/http"
@@ -13,7 +14,7 @@ import (
 	"github.com/gorilla/csrf"
 )
 
-func main() {
+func serve() {
 	router := chi.NewRouter()
 	router.Use(middleware.RequestID)
 	router.Use(middleware.Logger)
@@ -97,5 +98,20 @@ func main() {
 	err = http.ListenAndServe(fmt.Sprintf("%s:%s", host, port), router)
 	if err != nil {
 		log.Fatalf("Failed to start server: %s", err)
+	}
+}
+
+func main() {
+	flag.Parse()
+	args := flag.Args()
+	cmd := "serve"
+	if len(args) > 0 {
+		cmd = args[0]
+	}
+	switch cmd {
+	case "serve":
+		serve()
+	default:
+		log.Fatalf("unknown command %q", cmd)
 	}
 }
