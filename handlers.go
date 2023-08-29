@@ -44,7 +44,11 @@ var (
 
 func noopHandler(w http.ResponseWriter, _ *http.Request) {
 	w.Header().Set("Content-Type", "text/plain")
-	w.Write([]byte("hello world\n"))
+
+	_, err := w.Write([]byte("hello world\n"))
+	if err != nil {
+		log.Panicf("could not write output: %s", err)
+	}
 }
 
 func indexHandler(w http.ResponseWriter, r *http.Request) {
@@ -81,6 +85,7 @@ func indexHandler(w http.ResponseWriter, r *http.Request) {
 		ctx.PrevPage = pageNumber - 1
 
 		var totalLinks int64
+
 		database.DB.Model(&Link{}).Count(&totalLinks)
 		ctx.LastPage = int(math.Ceil(float64(totalLinks) / 50))
 
@@ -101,7 +106,11 @@ func showHandler(w http.ResponseWriter, r *http.Request) {
 		if link.ID == 0 {
 			w.Header().Set("Content-Type", "application/json")
 			result := renderJSONError(w, nil, http.StatusNotFound)
-			w.Write(result)
+
+			_, err := w.Write(result)
+			if err != nil {
+				log.Panicf("could not write output: %s", err)
+			}
 		} else {
 			renderJSON(w, link)
 		}
@@ -173,7 +182,10 @@ func saveHandler(w http.ResponseWriter, r *http.Request) {
 		link.SavedAt = time.Now()
 	}
 
-	link.Save(database.DB)
+	_, err := link.Save(database.DB)
+	if err != nil {
+		log.Panicf("could not save record: %s", err)
+	}
 
 	http.Redirect(w, r, "/links/", http.StatusSeeOther)
 }
@@ -186,7 +198,10 @@ func renderJSON(w http.ResponseWriter, data any) {
 		result = renderJSONError(w, err, 0)
 	}
 
-	w.Write(result)
+	_, err = w.Write(result)
+	if err != nil {
+		log.Panicf("could not write output: %s", err)
+	}
 }
 
 func renderJSONError(w http.ResponseWriter, err error, status int) []byte {

@@ -104,10 +104,12 @@ func serve() {
 func main() {
 	flag.Parse()
 	args := flag.Args()
+
 	cmd := "serve"
 	if len(args) > 0 {
 		cmd = args[0]
 	}
+
 	switch cmd {
 	case "serve":
 		serve()
