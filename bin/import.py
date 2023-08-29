@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 import csv
 import datetime
+import json
 import sqlite3
 import sys
 from typing import Any
@@ -53,9 +54,9 @@ def create_or_update(
     tags: set[str],
     title: str,
     description: str,
-    read_at: datetime,
-    saved_at: datetime,
-    now: datetime,
+    read_at: int | datetime.datetime | None,
+    saved_at: datetime.datetime,
+    now: datetime.datetime,
 ) -> None:
     cursor = db.cursor()
     entry = dict(
@@ -67,6 +68,8 @@ def create_or_update(
 
         for tag in entry["tags"].lower().strip("{}").split(","):
             if tag == "instapaper":
+                if "pinboard" in tags:
+                    tags.remove("pinboard")
                 continue
             tags.add(tag)
         for tag in tags:
@@ -189,6 +192,27 @@ def import_instapaper_csv(csvpath: str, dbpath: str) -> None:
                 tags.add(item["Folder"].lower())
 
             create_or_update(db, url, tags, title, description, read_at, saved_at, now)
+
+
+def import_json(jsonpath: str, dbpath: str) -> None:
+    db = sqlite3.connect(dbpath)
+    db.row_factory = sqlite3.Row
+    cursor = db.cursor()
+
+    now = datetime.datetime.now()
+
+    data = json.load(open(jsonpath))
+    for row in data:
+        url = normalise_url(row["href"])
+        title = row["description"]
+        description = row["extended"]
+        tags = set(row["tags"].split(" "))
+        saved_at = row["time"]
+        read_at = 0 if row["toread"] == "no" else None
+
+        tags.add("pinboard")
+
+        create_or_update(db, url, tags, title, description, read_at, saved_at, now)
 
 
 if __name__ == "__main__":
