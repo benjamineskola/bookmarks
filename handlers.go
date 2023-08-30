@@ -12,7 +12,6 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/alexedwards/argon2id"
 	"github.com/benjamineskola/bookmarks/database"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
@@ -259,8 +258,8 @@ func loginHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	r.ParseForm()
-	match, err := argon2id.ComparePasswordAndHash(r.FormValue("password"), GetPasswordForUser(database.DB, r.FormValue("email")))
-	session.Values["authenticated"] = match
+	user, _ := GetValidatedUser(r.FormValue("email"), r.FormValue("password"))
+	session.Values["authenticated"] = (user != nil)
 	err = session.Save(r, w)
 
 	if err != nil {
