@@ -8,13 +8,16 @@ import (
 	"math"
 	"net/http"
 	"net/url"
+	"os"
 	"strconv"
 	"time"
 
+	"github.com/alexedwards/argon2id"
 	"github.com/benjamineskola/bookmarks/database"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/gorilla/csrf"
+	"github.com/gorilla/sessions"
 	"gorm.io/datatypes"
 )
 
@@ -68,7 +71,7 @@ func indexHandler(w http.ResponseWriter, r *http.Request) {
 		links = GetLinks(database.DB, pageNumber, 0)
 	}
 
-	authenticated := r.Header.Get("Authorization") != ""
+	authenticated := isAuthenticated(r)
 
 	switch urlFormat {
 	case "json":
@@ -224,4 +227,80 @@ func renderJSONError(w http.ResponseWriter, err error, status int) []byte {
 	w.WriteHeader(status)
 
 	return []byte(fmt.Sprintf("{\"status\": %d, \"message\": \"%s\"}", status, message))
+}
+
+func cookiejar() *sessions.CookieStore {
+	SecretKey := []byte(os.Getenv("SECRET_KEY"))
+
+	return sessions.NewCookieStore(SecretKey)
+}
+
+func loginFormHandler(w http.ResponseWriter, r *http.Request) {
+	formTmpl := template.Must(template.ParseFiles("templates/login_form.html", "templates/base.html"))
+
+	ctx := map[string]interface{}{
+		"Authenticated":   isAuthenticated(r),
+		"CSRFTemplateTag": csrf.TemplateField(r),
+	}
+
+	err := formTmpl.ExecuteTemplate(w, "base.html", ctx)
+	if err != nil {
+		log.Printf("error rendering template: %s", err)
+	}
+}
+
+func loginHandler(w http.ResponseWriter, r *http.Request) {
+	session, err := cookiejar().Get(r, "authenticated")
+	if err != nil {
+		log.Printf("WARN: could not read cookies: %s", err)
+	}
+
+	r.ParseForm()
+	match, err := argon2id.ComparePasswordAndHash(r.FormValue("password"), GetPasswordForUser(database.DB, r.FormValue("email")))
+	session.Values["authenticated"] = match
+	err = session.Save(r, w)
+
+	if err != nil {
+		log.Printf("WARN: could not save session: %s", err)
+
+		return
+	}
+
+	http.Redirect(w, r, "/links/", http.StatusSeeOther)
+}
+
+func logoutHandler(w http.ResponseWriter, r *http.Request) {
+	session, err := cookiejar().Get(r, "authenticated")
+	if err != nil {
+		return
+	}
+
+	// nullify the user's session from the cookie Store
+	session.Values["authenticated"] = nil
+	err = session.Save(r, w)
+
+	c := &http.Cookie{
+		Name:     "authenticated",
+		Value:    "",
+		Path:     "/",
+		MaxAge:   -1,
+		HttpOnly: true,
+	}
+
+	http.SetCookie(w, c)
+
+	if err != nil {
+		return
+	}
+}
+
+func isAuthenticated(r *http.Request) bool {
+	session, err := cookiejar().Get(r, "authenticated")
+	if err != nil {
+		session.Values["authenticated"] = nil
+
+		return false
+	}
+
+	return session.Values["authenticated"] == true
 }

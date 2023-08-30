@@ -6,7 +6,6 @@ import (
 	"log"
 	"net/http"
 	"os"
-	"strings"
 
 	"github.com/benjamineskola/bookmarks/database"
 	"github.com/go-chi/chi/v5"
@@ -47,16 +46,6 @@ func serve() {
 
 	router.Use(csrfMiddleware)
 
-	expectedUser := os.Getenv("AUTH_USER")
-	expectedPass := os.Getenv("AUTH_PASSWORD")
-
-	if expectedUser == "" || expectedPass == "" {
-		log.Fatal("no user and password defined")
-	}
-
-	log.Printf("enabling auth for user %s", expectedUser)
-	auth := middleware.BasicAuth("bookmarks", map[string]string{expectedUser: expectedPass})
-
 	database.DB = database.InitDatabase()
 
 	err := database.RunMigrations()
@@ -64,11 +53,12 @@ func serve() {
 		log.Fatalf("failed to migrate database: %s", err)
 	}
 
+	router.Get("/auth/login/", loginFormHandler)
+	router.Post("/auth/login/", loginHandler)
+	router.Post("/auth/logout/", logoutHandler)
+
 	router.Route("/links", func(router chi.Router) {
 		router.Use(middleware.URLFormat)
-		router.Use(middleware.Maybe(auth, func(r *http.Request) bool {
-			return !strings.HasPrefix(r.URL.Path, "/links/public")
-		}))
 
 		router.Get("/", indexHandler)
 		router.With(middleware.WithValue("onlyPublic", true)).Route("/public", func(router chi.Router) {
