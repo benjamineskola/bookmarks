@@ -96,6 +96,24 @@ func GetPublicLinks(db *gorm.DB, page int, count int) *[]Link {
 	return &links
 }
 
+func GetReadLinks(db *gorm.DB, page int, count int) *[]Link {
+	var links []Link
+
+	if page < 1 {
+		page = 1
+	}
+
+	if count < 1 {
+		count = 50
+	}
+
+	offset := (page - 1) * count
+
+	db.Where("read_at >= ?", 0).Order("read_at desc").Limit(count).Offset(offset).Find(&links)
+
+	return &links
+}
+
 func GetLinkByID(db *gorm.DB, id uint) *Link {
 	var link Link
 

@@ -57,6 +57,7 @@ func noopHandler(w http.ResponseWriter, _ *http.Request) {
 func indexHandler(w http.ResponseWriter, r *http.Request) {
 	urlFormat, _ := r.Context().Value(middleware.URLFormatCtxKey).(string)
 	onlyPublic, _ := r.Context().Value("onlyPublic").(bool)
+	onlyRead, _ := r.Context().Value("onlyRead").(bool)
 	pageNumber, _ := strconv.Atoi(chi.URLParam(r, "page"))
 
 	if pageNumber == 0 {
@@ -67,6 +68,8 @@ func indexHandler(w http.ResponseWriter, r *http.Request) {
 
 	if onlyPublic {
 		links = GetPublicLinks(database.DB, pageNumber, 0)
+	} else if onlyRead {
+		links = GetReadLinks(database.DB, pageNumber, 0)
 	} else {
 		links = GetLinks(database.DB, pageNumber, 0)
 	}

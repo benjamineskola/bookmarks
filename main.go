@@ -65,6 +65,10 @@ func serve() {
 			router.Get("/", indexHandler)
 			router.Get("/page/{page}", indexHandler)
 		})
+		router.With(middleware.WithValue("onlyRead", true)).Route("/read", func(router chi.Router) {
+			router.Get("/", indexHandler)
+			router.Get("/page/{page}", indexHandler)
+		})
 
 		router.Get("/page/{page}", indexHandler)
 
