@@ -79,7 +79,7 @@ func serve() {
 			router.Get("/", showHandler)
 			router.Put("/", saveHandler)
 			router.Post("/", saveHandler)
-			router.Delete("/", noopHandler)
+			router.Delete("/", deleteHandler)
 			router.Get("/edit", formHandler)
 		})
 	})

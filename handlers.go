@@ -44,15 +44,6 @@ var (
 	showTmpl  *template.Template //nolint:gochecknoglobals
 )
 
-func noopHandler(w http.ResponseWriter, _ *http.Request) {
-	w.Header().Set("Content-Type", "text/plain")
-
-	_, err := w.Write([]byte("hello world\n"))
-	if err != nil {
-		log.Panicf("could not write output: %s", err)
-	}
-}
-
 func indexHandler(w http.ResponseWriter, r *http.Request) {
 	urlFormat, _ := r.Context().Value(middleware.URLFormatCtxKey).(string)
 	onlyPublic, _ := r.Context().Value("onlyPublic").(bool)
@@ -185,6 +176,26 @@ func saveHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	http.Redirect(w, r, "/links/", http.StatusSeeOther)
+}
+
+func deleteHandler(w http.ResponseWriter, r *http.Request) {
+	linkID, _ := strconv.Atoi(chi.URLParam(r, "id"))
+	link := GetLinkByID(database.DB, uint(linkID))
+
+	if link.ID == 0 {
+		w.Header().Set("Content-Type", "application/json")
+		result := renderJSONError(w, nil, http.StatusNotFound)
+
+		_, err := w.Write(result)
+		if err != nil {
+			log.Panicf("could not write output: %s", err)
+		}
+	} else {
+		database.DB.Delete(&Link{}, link.ID)
+		result := map[string]string{}
+		result["result"] = "success"
+		renderJSON(w, result)
+	}
 }
 
 func renderJSON(w http.ResponseWriter, data any) {
