@@ -63,15 +63,7 @@ func indexHandler(w http.ResponseWriter, r *http.Request) {
 		pageNumber = 1
 	}
 
-	var links *[]Link
-
-	if onlyPublic {
-		links = GetPublicLinks(database.DB, pageNumber, 0)
-	} else if onlyRead {
-		links = GetReadLinks(database.DB, pageNumber, 0)
-	} else {
-		links = GetLinks(database.DB, pageNumber, 0)
-	}
+	links := GetLinks(database.DB, pageNumber, 0, onlyPublic, onlyRead)
 
 	authenticated := isAuthenticated(r)
 

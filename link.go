@@ -60,7 +60,7 @@ func NewLink(urlString string, title string, description string, public bool) *L
 	return &link
 }
 
-func GetLinks(db *gorm.DB, page int, count int) *[]Link {
+func GetLinks(db *gorm.DB, page int, count int, onlyPublic bool, onlyRead bool) *[]Link {
 	var links []Link
 
 	if page < 1 {
@@ -73,43 +73,21 @@ func GetLinks(db *gorm.DB, page int, count int) *[]Link {
 
 	offset := (page - 1) * count
 
-	db.Order("saved_at desc").Limit(count).Offset(offset).Find(&links)
+	query := db
 
-	return &links
-}
-
-func GetPublicLinks(db *gorm.DB, page int, count int) *[]Link {
-	var links []Link
-
-	if page < 1 {
-		page = 1
+	if onlyPublic {
+		query = query.Where("public = ?", true)
 	}
 
-	if count < 1 {
-		count = 50
+	if onlyRead {
+		query = query.Where("read_at >= ?", 0).Order("read_at desc")
+	} else {
+		query = query.Order("saved_at desc")
 	}
 
-	offset := (page - 1) * count
+	query = query.Limit(count).Offset(offset)
 
-	db.Where("public = ?", true).Order("saved_at desc").Limit(count).Offset(offset).Find(&links)
-
-	return &links
-}
-
-func GetReadLinks(db *gorm.DB, page int, count int) *[]Link {
-	var links []Link
-
-	if page < 1 {
-		page = 1
-	}
-
-	if count < 1 {
-		count = 50
-	}
-
-	offset := (page - 1) * count
-
-	db.Where("read_at >= ?", 0).Order("read_at desc").Limit(count).Offset(offset).Find(&links)
+	query.Find(&links)
 
 	return &links
 }
