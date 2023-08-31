@@ -60,6 +60,11 @@ func serve() {
 	router.Route("/links", func(router chi.Router) {
 		router.Use(middleware.URLFormat)
 
+		router.Use(middleware.Maybe(middleware.WithValue("onlyPublic", true), func(r *http.Request) bool {
+			return !isAuthenticated(r)
+		},
+		))
+
 		router.Get("/", indexHandler)
 		router.With(middleware.WithValue("onlyPublic", true)).Route("/public", func(router chi.Router) {
 			router.Get("/", indexHandler)
