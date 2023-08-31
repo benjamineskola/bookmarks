@@ -75,7 +75,9 @@ func serve() {
 		router.Get("/new", formHandler)
 		router.Post("/", saveHandler)
 
-		router.Route("/{id}/", func(router chi.Router) {
+		router.Route("/{id}", func(router chi.Router) {
+			router.Use(rejectUnauthenticated)
+
 			router.Get("/", showHandler)
 			router.Put("/", saveHandler)
 			router.Post("/", saveHandler)

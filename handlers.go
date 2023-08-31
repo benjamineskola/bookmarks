@@ -309,3 +309,27 @@ func isAuthenticated(r *http.Request) bool {
 
 	return session.Values["authenticated"] == true
 }
+
+func rejectUnauthenticated(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if !isAuthenticated(r) {
+			urlFormat, _ := r.Context().Value(middleware.URLFormatCtxKey).(string)
+
+			switch urlFormat {
+			case "json":
+				w.Header().Set("Content-Type", "application/json")
+				result := renderJSONError(w, nil, http.StatusUnauthorized)
+
+				_, err := w.Write(result)
+				if err != nil {
+					log.Panicf("could not write output: %s", err)
+				}
+				return
+			default:
+				http.Redirect(w, r, "/auth/login/", http.StatusSeeOther)
+			}
+		}
+
+		next.ServeHTTP(w, r)
+	})
+}
