@@ -2,10 +2,15 @@
 import csv
 import datetime
 import json
-import sqlite3
+import os
+import subprocess
 import sys
 from typing import Any
 from urllib.parse import urlparse
+from zoneinfo import ZoneInfo
+
+UTC = ZoneInfo("UTC")
+TIMEZONE = ZoneInfo("Europe/London")
 
 url_normalisations: dict[str, Any] = {
     "add_www": {
@@ -26,6 +31,18 @@ url_normalisations: dict[str, Any] = {
         "newsocialist.org.uk",
     },
 }
+
+
+def add_to_database(items: list[dict[str, Any]]) -> None:
+    env = os.environ.get("ENVIRONMENT", "development")
+    cmd = ["bookmarks", "add"]
+    if env != "production":
+        cmd = ["go", "run", ".", "add"]
+
+    process = subprocess.Popen(cmd, stdin=subprocess.PIPE, text=True)
+    process.communicate(json.dumps(items))
+    if process.returncode:
+        sys.exit(process.returncode)
 
 
 def normalise_url(url: str) -> str:
@@ -49,183 +66,81 @@ def normalise_url(url: str) -> str:
     return parsed.geturl()
 
 
-def create_or_update(
-    db: sqlite3.Connection,
-    url: str,
-    tags: set[str],
-    title: str,
-    description: str,
-    read_at: int | datetime.datetime | None,
-    saved_at: datetime.datetime,
-    now: datetime.datetime,
-) -> None:
-    cursor = db.cursor()
-    entry = dict(
-        cursor.execute("SELECT * FROM links WHERE url=?", (url,)).fetchone() or {}
-    )
+def import_dropbox_csv(csvpath: str, read: bool) -> None:
+    key_name = "ReadAt" if read else "SavedAt"
 
-    if entry:
-        changed = False
-
-        for tag in entry["tags"].lower().strip("{}").split(","):
-            if tag == "instapaper":
-                if "pinboard" in tags:
-                    tags.remove("pinboard")
-                continue
-            tags.add(tag)
-        for tag in tags:
-            if tag not in entry["tags"].lower().strip("{}").split(","):
-                changed = True
-                entry["tags"] = "{" + (",".join(tags)) + "}"
-                break
-
-        if entry["title"] != title:
-            entry["title"] = title
-            changed = True
-        if entry["description"] != description:
-            entry["description"] = description
-            changed = True
-        if str(entry["read_at"]) != str(read_at):
-            entry["read_at"] = read_at
-            changed = True
-        if str(entry["saved_at"]) != str(saved_at):
-            entry["saved_at"] = saved_at
-            changed = True
-
-        if changed:
-            entry["updated_at"] = now
-
-            cursor.execute(
-                """UPDATE links SET
-                        url=:url,
-                        created_at=:created_at,
-                        updated_at=:updated_at,
-                        saved_at=:saved_at,
-                        read_at=:read_at,
-                        title=:title,
-                        description=:description,
-                        tags=:tags
-                        WHERE url=:url;""",
-                entry,
-            )
-    else:
-        entry = {
-            "url": url,
-            "title": title,
-            "description": description,
-            "saved_at": saved_at,
-            "read_at": read_at,
-            "tags": "{" + (",".join(tags)) + "}",
-            "created_at": now,
-            "updated_at": now,
-        }
-        cursor.execute(
-            """INSERT INTO links
-                    (url, created_at, updated_at, saved_at, read_at, title, description, tags)
-                    VALUES(:url, :created_at, :updated_at, :saved_at, :read_at, :title, :description, :tags);""",
-            entry,
-        )
-
-    db.commit()
-
-
-def import_dropbox_csv(csvpath: str, dbpath: str, read: bool) -> None:
-    db = sqlite3.connect(dbpath)
-    cursor = db.cursor()
-    now = datetime.datetime.now()
-
-    with open(csvpath, newline="") as csvpath:
-        reader = csv.DictReader(csvpath, fieldnames=("URL", "Timestamp"))
-        for item in reader:
-            link = {
-                "url": normalise_url(item["URL"]),
-                "date": datetime.datetime.strptime(
-                    item["Timestamp"].removesuffix("AM").removesuffix("PM"),
-                    "%B %d, %Y at %H:%M",
+    with open(csvpath, newline="") as csvfile:
+        reader = csv.DictReader(csvfile, fieldnames=("URL", "Timestamp"))
+        items = [
+            {
+                "URL": normalise_url(item["URL"]),
+                key_name: (
+                    datetime.datetime.strptime(
+                        item["Timestamp"], "%B %d, %Y at %I:%M%p"
+                    )
+                    .astimezone(TIMEZONE)
+                    .isoformat()
                 ),
-                "now": now,
             }
+            for item in reader
+        ]
 
-            if read:
-                cursor.execute(
-                    """UPDATE links SET updated_at=:now, read_at=:date
-                    WHERE url=:url AND read_at <> :date;""",
-                    link,
-                )
-                cursor.execute(
-                    """INSERT OR IGNORE INTO links
-                    (url, created_at, updated_at, saved_at, read_at)
-                    VALUES(:url, :now, :now, :now, :date);""",
-                    link,
-                )
-            else:
-                cursor.execute(
-                    """UPDATE links SET updated_at=:now, saved_at=:date
-                    WHERE url=:url AND saved_at <> :date;""",
-                    link,
-                )
-                cursor.execute(
-                    """INSERT OR IGNORE INTO links
-                        (url, created_at, updated_at, saved_at)
-                        VALUES(:url, :now, :now, :date);""",
-                    link,
-                )
-            db.commit()
+        add_to_database(items)
 
 
-def import_instapaper_csv(csvpath: str, dbpath: str) -> None:
-    db = sqlite3.connect(dbpath)
-    db.row_factory = sqlite3.Row
+def import_instapaper_csv(csvpath: str) -> None:
+    tags = {"instapaper"}
 
-    now = datetime.datetime.now()
+    with open(csvpath, newline="") as csvfile:
+        reader = csv.DictReader(csvfile)
+        items = [
+            {
+                "URL": normalise_url(item["URL"]),
+                "Title": item["Title"],
+                "Description": item["Selection"],
+                "SavedAt": datetime.datetime.fromtimestamp(int(item["Timestamp"]))
+                .astimezone(UTC)
+                .isoformat(),
+                "ReadAt": 0 if item["Folder"] == "Archive" else None,
+                "Tags": "{"
+                + (",".join((tags | {item["Folder"].lower()}) - {"archive", "unread"}))
+                + "}",
+            }
+            for item in reader
+        ]
 
-    with open(csvpath, newline="") as csvpath:
-        reader = csv.DictReader(csvpath)
-        for item in reader:
-            url = normalise_url(item["URL"])
-            title = item["Title"]
-            description = item["Selection"]
-            saved_at = datetime.datetime.fromtimestamp(int(item["Timestamp"]))
-            read_at = 0 if item["Folder"] == "Archive" else None
-            tags = {"instapaper"}
-
-            if item["Folder"] not in ["Archive", "Unread"]:
-                tags.add(item["Folder"].lower())
-
-            create_or_update(db, url, tags, title, description, read_at, saved_at, now)
+        add_to_database(items)
 
 
-def import_json(jsonpath: str, dbpath: str) -> None:
-    db = sqlite3.connect(dbpath)
-    db.row_factory = sqlite3.Row
-    cursor = db.cursor()
-
-    now = datetime.datetime.now()
+def import_json(jsonpath: str) -> None:
+    tags = {"pinboard"}
 
     data = json.load(open(jsonpath))
-    for row in data:
-        url = normalise_url(row["href"])
-        title = row["description"]
-        description = row["extended"]
-        tags = set(row["tags"].split(" "))
-        saved_at = row["time"]
-        read_at = 0 if row["toread"] == "no" else None
+    items = [
+        (
+            {
+                "URL": normalise_url(item["href"]),
+                "Title": item["description"],
+                "Description": item["extended"],
+                "SavedAt": item["time"],
+                "ReadAt": 0 if item["toread"] == "no" else None,
+                "Tags": "{" + (",".join(tags | set(item["tags"].split(" ")))) + "}",
+            }
+        )
+        for item in data
+    ]
 
-        tags.add("pinboard")
-
-        create_or_update(db, url, tags, title, description, read_at, saved_at, now)
+    add_to_database(items)
 
 
 if __name__ == "__main__":
-    csvpath, dbpath, *_ = sys.argv[1:]
-    import_instapaper_csv(csvpath, dbpath)
+    csvpath, *_ = sys.argv[1:]
+    import_instapaper_csv(csvpath)
     import_dropbox_csv(
         "/Users/ben/Library/CloudStorage/Dropbox/IFTTT/Instapaper/Saved Items.txt",
-        dbpath,
         False,
     )
     import_dropbox_csv(
         "/Users/ben/Library/CloudStorage/Dropbox/IFTTT/Instapaper/Archived Items.txt",
-        dbpath,
         True,
     )

@@ -47,11 +47,15 @@ type Link struct {
 	Tags        *TagList
 }
 
-func NewLink(urlString string, title string, description string, public bool) *Link {
+func parseURL(urlString string) *datatypes.URL {
 	parsedURL, _ := url.Parse(urlString)
 	gormURL := datatypes.URL(*parsedURL)
+	return &gormURL
+}
+
+func NewLink(urlString string, title string, description string, public bool) *Link {
 	link := Link{ //nolint:exhaustruct
-		URL:         &gormURL,
+		URL:         parseURL(urlString),
 		Title:       title,
 		Description: description,
 		Public:      public,
@@ -96,6 +100,14 @@ func GetLinkByID(db *gorm.DB, id uint) *Link {
 	var link Link
 
 	db.First(&link, id)
+
+	return &link
+}
+
+func GetLinkByURL(db *gorm.DB, url string) *Link {
+	var link Link
+
+	db.Where("url = ?", url).First(&link)
 
 	return &link
 }

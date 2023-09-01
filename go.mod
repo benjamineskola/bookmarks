@@ -1,6 +1,6 @@
 module github.com/benjamineskola/bookmarks
 
-go 1.20
+go 1.21
 
 require (
 	github.com/alexedwards/argon2id v0.0.0-20230305115115-4b3c3280a736

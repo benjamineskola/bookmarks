@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"flag"
 	"fmt"
 	"log"
@@ -102,6 +103,24 @@ func serve() {
 	}
 }
 
+func add() {
+	database.DB = database.InitDatabase()
+	err := database.RunMigrations()
+	if err != nil {
+		log.Fatalf("failed to migrate database: %s", err)
+	}
+
+	dec := json.NewDecoder(os.Stdin)
+	var data []map[string]interface{}
+	err = dec.Decode(&data)
+
+	for _, item := range data {
+		if url, ok := item["URL"].(string); ok {
+			importer(url, item)
+		}
+	}
+}
+
 func main() {
 	flag.Parse()
 	args := flag.Args()
@@ -114,6 +133,8 @@ func main() {
 	switch cmd {
 	case "serve":
 		serve()
+	case "add":
+		add()
 	default:
 		log.Fatalf("unknown command %q", cmd)
 	}
