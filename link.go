@@ -93,7 +93,7 @@ func GetLinks(db *gorm.DB, page int, count int, onlyPublic bool, onlyRead bool) 
 	}
 
 	if onlyRead {
-		query = query.Where("read_at >= ?", 0).Order("read_at desc")
+		query = query.Where("read_at >= ?", time.Unix(0, 0)).Order("read_at desc")
 	} else {
 		query = query.Order("saved_at desc")
 	}
