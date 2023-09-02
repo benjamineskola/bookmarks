@@ -11,6 +11,7 @@ import (
 	_ "github.com/mattn/go-sqlite3"                           // doesn't need to be referenced
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
+	"gorm.io/gorm/logger"
 )
 
 var DB *gorm.DB //nolint:gochecknoglobals
@@ -25,7 +26,7 @@ func getDBPath() string {
 }
 
 func InitDatabase() *gorm.DB {
-	db, _ := gorm.Open(sqlite.Open(getDBPath()))
+	db, _ := gorm.Open(sqlite.Open(getDBPath()), &gorm.Config{Logger: logger.Default.LogMode(logger.Silent)})
 
 	return db
 }
