@@ -10,6 +10,7 @@ import (
 	"net/url"
 	"os"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/benjamineskola/bookmarks/database"
@@ -27,6 +28,7 @@ type TemplateContext struct {
 	LastPage        int
 	PrevPage        int
 	NextPage        int
+	RootPath        string
 }
 
 type SingleTemplateContext struct {
@@ -71,6 +73,7 @@ func indexHandler(w http.ResponseWriter, r *http.Request) {
 		ctx.CurrentPage = pageNumber
 		ctx.NextPage = pageNumber + 1
 		ctx.PrevPage = pageNumber - 1
+		ctx.RootPath = strings.TrimSuffix(strings.TrimRight(r.URL.String(), "/1234567890"), "/page")
 
 		ctx.LastPage = int(math.Ceil(float64(totalLinks) / 50))
 

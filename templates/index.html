@@ -47,19 +47,19 @@
     current page is {{ .CurrentPage }} of {{ .LastPage}}
     <br>
     {{ if gt .CurrentPage 1 }}
-      <a href="/links/">first</a>
+      <a href="{{ .RootPath }}">first</a>
     {{ else }}
       <span>first</span>
     {{ end }}
     {{ if gt .PrevPage 1 }}
-      <a href="/links/page/{{.PrevPage}}">prev</a>
+      <a href="{{ .RootPath }}/page/{{.PrevPage}}">prev</a>
     {{ end }}
     <a href="#">{{ .CurrentPage }}</a>
     {{ if lt .NextPage  .LastPage }}
-      <a href="/links/page/{{.NextPage}}">next</a>
+      <a href="{{ .RootPath }}/page/{{.NextPage}}">next</a>
     {{ end }}
     {{ if lt .CurrentPage .LastPage }}
-      <a href="/links/page/{{ .LastPage }}">last</a>
+      <a href="{{ .RootPath }}/page/{{ .LastPage }}">last</a>
     {{ else }}
       <span>last</span>
     {{ end }}
