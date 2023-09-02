@@ -54,7 +54,7 @@ func indexHandler(w http.ResponseWriter, r *http.Request) {
 		pageNumber = 1
 	}
 
-	links := GetLinks(database.DB, pageNumber, 0, onlyPublic, onlyRead)
+	links, totalLinks := GetLinks(database.DB, pageNumber, 0, onlyPublic, onlyRead)
 
 	authenticated := isAuthenticated(r)
 
@@ -72,9 +72,6 @@ func indexHandler(w http.ResponseWriter, r *http.Request) {
 		ctx.NextPage = pageNumber + 1
 		ctx.PrevPage = pageNumber - 1
 
-		var totalLinks int64
-
-		database.DB.Model(&Link{}).Count(&totalLinks)
 		ctx.LastPage = int(math.Ceil(float64(totalLinks) / 50))
 
 		err := indexTmpl.ExecuteTemplate(w, "base.html", ctx)

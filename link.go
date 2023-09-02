@@ -73,7 +73,7 @@ func NewLink(urlString string, title string, description string, public bool) *L
 	return &link
 }
 
-func GetLinks(db *gorm.DB, page int, count int, onlyPublic bool, onlyRead bool) *[]Link {
+func GetLinks(db *gorm.DB, page int, count int, onlyPublic bool, onlyRead bool) (*[]Link, int64) {
 	var links []Link
 
 	if page < 1 {
@@ -98,11 +98,14 @@ func GetLinks(db *gorm.DB, page int, count int, onlyPublic bool, onlyRead bool) 
 		query = query.Order("saved_at desc")
 	}
 
+	var totalCount int64 = 0
+	query.Model(&Link{}).Count(&totalCount)
+
 	query = query.Limit(count).Offset(offset)
 
 	query.Find(&links)
 
-	return &links
+	return &links, totalCount
 }
 
 func GetLinkByID(db *gorm.DB, id uint) *Link {
