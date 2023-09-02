@@ -121,6 +121,22 @@ func add() {
 	}
 }
 
+func addUser(email string, password string) {
+	user, err := NewUser(email, password)
+	if err != nil {
+		log.Fatalf("could not create user: %s", err)
+	}
+
+	database.DB = database.InitDatabase()
+
+	err = database.RunMigrations()
+	if err != nil {
+		log.Fatalf("failed to migrate database: %s", err)
+	}
+
+	database.DB.Save(user)
+}
+
 func main() {
 	flag.Parse()
 	args := flag.Args()
@@ -135,6 +151,8 @@ func main() {
 		serve()
 	case "add":
 		add()
+	case "adduser":
+		addUser(args[1], args[2])
 	default:
 		log.Fatalf("unknown command %q", cmd)
 	}

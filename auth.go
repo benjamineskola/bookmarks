@@ -1,6 +1,8 @@
 package main
 
 import (
+	"fmt"
+
 	"github.com/alexedwards/argon2id"
 	"github.com/benjamineskola/bookmarks/database"
 	"gorm.io/gorm"
@@ -11,6 +13,16 @@ type User struct {
 
 	Email    string
 	Password string
+}
+
+func NewUser(email string, password string) (*User, error) {
+	hash, err := argon2id.CreateHash(password, argon2id.DefaultParams)
+	if err != nil {
+		return nil, fmt.Errorf("could not create password: %w", err)
+	}
+
+	user := User{Email: email, Password: hash}
+	return &user, nil
 }
 
 func GetUserByEmail(db *gorm.DB, email string) *User {
