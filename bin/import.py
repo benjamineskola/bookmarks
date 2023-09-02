@@ -134,13 +134,14 @@ def import_json(jsonpath: str) -> None:
 
 
 if __name__ == "__main__":
-    csvpath, *_ = sys.argv[1:]
-    import_instapaper_csv(csvpath)
-    import_dropbox_csv(
-        "/Users/ben/Library/CloudStorage/Dropbox/IFTTT/Instapaper/Saved Items.txt",
-        False,
-    )
-    import_dropbox_csv(
-        "/Users/ben/Library/CloudStorage/Dropbox/IFTTT/Instapaper/Archived Items.txt",
-        True,
-    )
+    args = zip(sys.argv[1::2], sys.argv[2::2])
+    for arg, path in args:
+        print(arg, path, file=sys.stderr)
+        if arg == "--instapaper-csv":
+            import_instapaper_csv(path)
+        elif arg == "--pinboard-json":
+            import_json(path)
+        elif arg == "--saved-csv":
+            import_dropbox_csv(path, False)
+        elif arg == "--read-csv":
+            import_dropbox_csv(path, True)
