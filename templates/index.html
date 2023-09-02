@@ -18,8 +18,8 @@
         {{ end }}
         {{ if .Tags }}
           <br>
-          {{ range .Tags }}
-            <span class="tag">{{ . }}</span>
+          {{ range $k, $v := .Tags }}
+            <span class="tag">{{ $k }}</span>
           {{ end }}
         {{ end }}
         <br>

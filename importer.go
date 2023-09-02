@@ -3,7 +3,6 @@ package main
 import (
 	"errors"
 	"fmt"
-	"slices"
 	"time"
 
 	"github.com/benjamineskola/bookmarks/database"
@@ -36,6 +35,9 @@ func importer(url string, data map[string]interface{}) {
 	if link.ID == 0 {
 		link.URL = parseURL(url)
 		changed = true
+
+		tl := make(TagList)
+		link.Tags = &tl
 	}
 
 	if title, ok := data["Title"].(string); ok {
@@ -70,16 +72,9 @@ func importer(url string, data map[string]interface{}) {
 		tl := TagList{}
 		tl.Scan(tagsStr)
 
-		if link.Tags != nil {
-			for _, tag := range *link.Tags {
-				if !slices.Contains(tl, tag) {
-					tl = append(tl, tag)
-					changed = true
-				}
-			}
+		for tag := range tl {
+			(*link.Tags)[tag] = struct{}{}
 		}
-
-		link.Tags = &tl
 	}
 
 	if changed {

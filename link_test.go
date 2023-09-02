@@ -40,13 +40,13 @@ func TestLinkTags(t *testing.T) {
 	t.Parallel()
 
 	link := NewLink("http://example.com/", "Example Website", "This is just an example.", false)
-	tags := []string{"foo", "bar"}
+	tags := map[string]struct{}{"foo": {}, "bar": {}}
 	tl := TagList(tags)
 	link.Tags = &tl
 
 	id, _ := link.Save(database.DB)
 
 	actual := GetLinkByID(database.DB, id)
-	expected := TagList([]string{"foo", "bar"})
+	expected := TagList(map[string]struct{}{"foo": {}, "bar": {}})
 	assert.Equal(t, &expected, actual.Tags)
 }

@@ -12,7 +12,7 @@ import (
 	"gorm.io/gorm"
 )
 
-type TagList []string
+type TagList map[string]struct{}
 
 func (tl *TagList) Scan(src any) error {
 	var source string
@@ -26,13 +26,21 @@ func (tl *TagList) Scan(src any) error {
 	trimmed := strings.Trim(source, "{}")
 	split := strings.Split(trimmed, ",")
 
-	*tl = split
+	*tl = make(map[string]struct{}, len(split))
+	for _, tag := range split {
+		(*tl)[tag] = struct{}{}
+	}
 
 	return nil
 }
 
 func (tl TagList) Value() (driver.Value, error) {
-	return fmt.Sprintf("{%s}", strings.Join(tl, ",")), nil
+	tags := make([]string, len(tl))
+	for tag := range tl {
+		tags = append(tags, tag)
+	}
+
+	return fmt.Sprintf("{%s}", strings.Join(tags, ",")), nil
 }
 
 type Link struct {
