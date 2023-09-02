@@ -148,7 +148,8 @@ func saveHandler(w http.ResponseWriter, r *http.Request) {
 	r.ParseForm()
 
 	parsedURL, _ := url.Parse(r.FormValue("Link.URL"))
-	gormURL := datatypes.URL(*parsedURL)
+	normalisedURL := normaliseURL(*parsedURL)
+	gormURL := datatypes.URL(normalisedURL)
 	link.URL = &gormURL
 	link.Title = r.FormValue("Link.Title")
 	link.Description = r.FormValue("Link.Description")

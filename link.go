@@ -57,7 +57,8 @@ type Link struct {
 
 func parseURL(urlString string) *datatypes.URL {
 	parsedURL, _ := url.Parse(urlString)
-	gormURL := datatypes.URL(*parsedURL)
+	normalisedURL := normaliseURL(*parsedURL)
+	gormURL := datatypes.URL(normalisedURL)
 	return &gormURL
 }
 

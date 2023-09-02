@@ -6,31 +6,10 @@ import os
 import subprocess
 import sys
 from typing import Any
-from urllib.parse import urlparse
 from zoneinfo import ZoneInfo
 
 UTC = ZoneInfo("UTC")
 TIMEZONE = ZoneInfo("Europe/London")
-
-url_normalisations: dict[str, Any] = {
-    "add_www": {
-        "theguardian.com",
-    },
-    "remove_www": {
-        "www.jacobin.com",
-        "www.jacobinmag.com",
-        "www.tribunemag.co.uk",
-    },
-    "replace_domain": {
-        "jacobinmag.com": "jacobin.com",
-    },
-    "force_https": {
-        "www.theguardian.com",
-        "jacobin.com",
-        "tribunemag.co.uk",
-        "newsocialist.org.uk",
-    },
-}
 
 
 def add_to_database(items: list[dict[str, Any]]) -> None:
@@ -45,27 +24,6 @@ def add_to_database(items: list[dict[str, Any]]) -> None:
         sys.exit(process.returncode)
 
 
-def normalise_url(url: str) -> str:
-    parsed = urlparse(url)
-    if parsed.netloc in url_normalisations["add_www"]:
-        parsed = parsed._replace(netloc="www." + parsed.netloc)
-    if parsed.netloc in url_normalisations["remove_www"]:
-        parsed = parsed._replace(netloc=parsed.netloc.removeprefix("www."))
-    if parsed.netloc in url_normalisations["replace_domain"]:
-        parsed = parsed._replace(
-            netloc=url_normalisations["replace_domain"][parsed.netloc]
-        )
-
-    if parsed.netloc == "medium.com" or parsed.netloc.endswith(".medium.com"):
-        # special case
-        parsed = parsed._replace(netloc="scribe.rip")
-
-    if parsed.netloc in url_normalisations["force_https"]:
-        parsed = parsed._replace(scheme="https")
-
-    return parsed.geturl()
-
-
 def import_dropbox_csv(csvpath: str, read: bool) -> None:
     key_name = "ReadAt" if read else "SavedAt"
 
@@ -73,7 +31,7 @@ def import_dropbox_csv(csvpath: str, read: bool) -> None:
         reader = csv.DictReader(csvfile, fieldnames=("URL", "Timestamp"))
         items = [
             {
-                "URL": normalise_url(item["URL"]),
+                "URL": item["URL"],
                 key_name: (
                     datetime.datetime.strptime(
                         item["Timestamp"], "%B %d, %Y at %I:%M%p"
@@ -95,7 +53,7 @@ def import_instapaper_csv(csvpath: str) -> None:
         reader = csv.DictReader(csvfile)
         items = [
             {
-                "URL": normalise_url(item["URL"]),
+                "URL": item["URL"],
                 "Title": item["Title"],
                 "Description": item["Selection"],
                 "SavedAt": datetime.datetime.fromtimestamp(int(item["Timestamp"]))
@@ -119,7 +77,7 @@ def import_json(jsonpath: str) -> None:
     items = [
         (
             {
-                "URL": normalise_url(item["href"]),
+                "URL": item["href"],
                 "Title": item["description"],
                 "Description": item["extended"],
                 "SavedAt": item["time"],
