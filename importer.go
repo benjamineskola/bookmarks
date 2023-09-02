@@ -55,7 +55,7 @@ func importer(url string, data map[string]interface{}) {
 	}
 
 	if readAt, err := parseJSONDate(data["ReadAt"]); err == nil {
-		if !link.ReadAt.Equal(*readAt) {
+		if !link.ReadAt.Equal(*readAt) && ((!link.HasReadDate()) || (readAt.After(time.Unix(0, 0)))) {
 			changed = true
 			link.ReadAt = *readAt
 		}
