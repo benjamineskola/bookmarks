@@ -44,24 +44,34 @@
     {{ end }}
   </div>
   <nav class="pagination">
-    current page is {{ .CurrentPage }} of {{ .LastPage}}
-    <br>
     {{ if gt .CurrentPage 1 }}
-      <a href="{{ .RootPath }}">first</a>
+      <a href="{{ .RootPath }}/{{ .PrevPage }}">&laquo;</a>
+      <a href="{{ .RootPath }}">1</a>
     {{ else }}
-      <span>first</span>
+      <span>&laquo;</span>
+      <span>1</span>
     {{ end }}
-    {{ if gt .PrevPage 1 }}
-      <a href="{{ .RootPath }}/page/{{.PrevPage}}">prev</a>
+    {{ if gt .CurrentPage 2 }}
+      <span>…</span>
     {{ end }}
-    <a href="#">{{ .CurrentPage }}</a>
-    {{ if lt .NextPage  .LastPage }}
-      <a href="{{ .RootPath }}/page/{{.NextPage}}">next</a>
+    {{ $curr := .CurrentPage }}
+    {{ $path := .RootPath }}
+    {{ range $x, $page := .AdjacentPages }}
+      {{ if eq $page $curr }}
+        <span>{{$page}}</span>
+      {{ else }}
+        <a href="{{ $path }}/page/{{ $page }}">{{ $page }}</a>
+      {{ end }}
+    {{ end }}
+    {{ if gt .LastPage .NextPage }}
+      <span>…</span>
     {{ end }}
     {{ if lt .CurrentPage .LastPage }}
-      <a href="{{ .RootPath }}/page/{{ .LastPage }}">last</a>
+      <a href="{{ .RootPath }}/page/{{ .LastPage }}">{{ .LastPage }}</a>
+      <a href="{{ .RootPath }}/{{ .NextPage }}">&raquo;</a>
     {{ else }}
-      <span>last</span>
+      <span>{{ .LastPage }}</span>
+      <span>&raquo;</span>
     {{ end }}
   </nav>
 {{ end }}

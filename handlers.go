@@ -29,6 +29,7 @@ type TemplateContext struct {
 	PrevPage        int
 	NextPage        int
 	RootPath        string
+	AdjacentPages   []int
 }
 
 type SingleTemplateContext struct {
@@ -76,6 +77,13 @@ func indexHandler(w http.ResponseWriter, r *http.Request) {
 		ctx.RootPath = strings.TrimSuffix(strings.TrimRight(r.URL.String(), "/1234567890"), "/page")
 
 		ctx.LastPage = int(math.Ceil(float64(totalLinks) / 50))
+
+		ctx.AdjacentPages = make([]int, 0, 7)
+		for i := pageNumber - 3; i <= pageNumber+3; i++ {
+			if i > 1 && i < ctx.LastPage {
+				ctx.AdjacentPages = append(ctx.AdjacentPages, i)
+			}
+		}
 
 		err := indexTmpl.ExecuteTemplate(w, "base.html", ctx)
 		if err != nil {
