@@ -34,3 +34,16 @@ func LoadConfig() {
 		return
 	}
 }
+
+func MakeConfig() ConfigType {
+	conf := ConfigType{
+		URLNormalisations: URLNormalisations{
+			AddWWW:        make([]string, 0),
+			RemoveWWW:     make([]string, 0),
+			ReplaceDomain: make(map[string]string, 0),
+			ForceHTTPS:    make([]string, 0),
+		},
+	}
+
+	return conf
+}
