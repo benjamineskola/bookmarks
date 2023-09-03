@@ -7,6 +7,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"time"
 
 	"github.com/benjamineskola/bookmarks/database"
 	"github.com/go-chi/chi/v5"
@@ -92,8 +93,14 @@ func serve() {
 
 	log.Printf("listening on %s:%s", host, port)
 
-	err := http.ListenAndServe(fmt.Sprintf("%s:%s", host, port), router)
-	if err != nil {
+	server := &http.Server{ //nolint:exhaustruct
+		Addr:         fmt.Sprintf("%s:%s", host, port),
+		Handler:      router,
+		ReadTimeout:  5 * time.Second,
+		WriteTimeout: 10 * time.Second,
+	}
+
+	if err := server.ListenAndServe(); err != nil {
 		log.Fatalf("Failed to start server: %s", err)
 	}
 }
