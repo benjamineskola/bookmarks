@@ -4,7 +4,6 @@ import (
 	"database/sql/driver"
 	"errors"
 	"fmt"
-	"net/url"
 	"strings"
 	"time"
 
@@ -65,14 +64,6 @@ type Link struct {
 	ReadAt      time.Time
 	Public      bool
 	Tags        *TagList
-}
-
-func parseURL(urlString string) *datatypes.URL {
-	parsedURL, _ := url.Parse(urlString)
-	normalisedURL := normaliseURL(*parsedURL)
-	gormURL := datatypes.URL(normalisedURL)
-
-	return &gormURL
 }
 
 func NewLink(urlString string, title string, description string, public bool) *Link {

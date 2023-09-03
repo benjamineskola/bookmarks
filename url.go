@@ -6,7 +6,16 @@ import (
 	"strings"
 
 	"github.com/benjamineskola/bookmarks/config"
+	"gorm.io/datatypes"
 )
+
+func parseURL(urlString string) *datatypes.URL {
+	parsedURL, _ := url.Parse(urlString)
+	normalisedURL := normaliseURL(*parsedURL)
+	gormURL := datatypes.URL(normalisedURL)
+
+	return &gormURL
+}
 
 func normaliseAddWWW(inputURL url.URL) url.URL {
 	normalisationAddWWW := config.Config.URLNormalisations.AddWWW
