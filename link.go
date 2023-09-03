@@ -16,21 +16,24 @@ var errIncompatibleType = errors.New("incompatible type")
 
 type TagList map[string]struct{}
 
-func (tl *TagList) Scan(src any) error {
-	var source string
-	switch s := src.(type) {
-	case string:
-		source = s
-	default:
-		return errIncompatibleType
+func NewTagListFromString(src string) TagList {
+	trimmed := strings.Trim(src, "{}")
+	tags := strings.Split(trimmed, ",")
+
+	tl := make(TagList, len(tags))
+	for _, tag := range tags {
+		tl[tag] = struct{}{}
 	}
 
-	trimmed := strings.Trim(source, "{}")
-	split := strings.Split(trimmed, ",")
+	return tl
+}
 
-	*tl = make(map[string]struct{}, len(split))
-	for _, tag := range split {
-		(*tl)[tag] = struct{}{}
+func (tl *TagList) Scan(src any) error {
+	switch source := src.(type) {
+	case string:
+		*tl = NewTagListFromString(source)
+	default:
+		return errIncompatibleType
 	}
 
 	return nil
