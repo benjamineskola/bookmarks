@@ -124,7 +124,10 @@ func GetLinkByURL(url string) *Link {
 
 	normalisedURL := normaliseURLString(url)
 
-	database.DB.Where("url = ?", normalisedURL).First(&link)
+	urlWithSlash := normalisedURL + "/"
+	urlWithoutSlash := strings.TrimRight(normalisedURL, "/")
+
+	database.DB.Where("url = ? or url = ? or url = ?", normalisedURL, urlWithSlash, urlWithoutSlash).First(&link)
 
 	return &link
 }

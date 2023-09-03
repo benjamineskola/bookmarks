@@ -87,3 +87,39 @@ func TestGetLinkByURLNormalises(t *testing.T) {
 		})
 	}
 }
+
+func TestGetLinkByURLNormalisesSlashes(t *testing.T) {
+	t.Parallel()
+
+	testCases := []struct {
+		Input    string
+		Expected string
+	}{
+		{Input: "https://normaliseslashwith.com/", Expected: "https://normaliseslashwith.com/"},
+		{Input: "https://normaliseslashwith.com", Expected: "https://normaliseslashwith.com/"},
+		{Input: "https://normaliseslashwithout.com", Expected: "https://normaliseslashwithout.com"},
+		{Input: "https://normaliseslashwithout.com/", Expected: "https://normaliseslashwithout.com"},
+	}
+
+	link := NewLink("https://normaliseslashwith.com/",
+		"Example Website", "TestGetLinkByURLNormalisesSlashes example", false)
+	_, err := link.Save()
+	assert.Nil(t, err)
+
+	link = NewLink("https://normaliseslashwithout.com",
+		"Example Website", "TestGetLinkByURLNormalisesSlashes example", false)
+	_, err = link.Save()
+	assert.Nil(t, err)
+
+	for _, testCase := range testCases {
+		testCase := testCase
+		t.Run(testCase.Input, func(t *testing.T) {
+			t.Parallel()
+
+			actual := GetLinkByURL(testCase.Input)
+
+			assert.NotNil(t, actual.URL)
+			assert.Equal(t, testCase.Expected, actual.URL.String())
+		})
+	}
+}
