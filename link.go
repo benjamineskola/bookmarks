@@ -48,6 +48,12 @@ func (tl TagList) Value() (driver.Value, error) { //nolint:unparam
 	return fmt.Sprintf("{%s}", strings.Join(tags, ",")), nil
 }
 
+func (tl *TagList) Merge(other TagList) {
+	for tag := range other {
+		(*tl)[tag] = struct{}{}
+	}
+}
+
 type Link struct {
 	gorm.Model
 

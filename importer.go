@@ -70,11 +70,7 @@ func importer(url string, data map[string]interface{}) {
 	}
 
 	if tagsStr, ok := data["Tags"].(string); ok {
-		tl := NewTagListFromString(tagsStr)
-
-		for tag := range tl {
-			(*link.Tags)[tag] = struct{}{}
-		}
+		link.Tags.Merge(NewTagListFromString(tagsStr))
 	}
 
 	if changed {
