@@ -2,51 +2,67 @@ package main
 
 import (
 	"net/url"
+	"slices"
 	"strings"
+
+	"github.com/benjamineskola/bookmarks/config"
 )
 
-var normalisationAddWWW = map[string]bool{
-	"theguardian.com": true,
-}
+func normaliseAddWWW(inputURL url.URL) url.URL {
+	normalisationAddWWW := config.Config.URLNormalisations.AddWWW
 
-var normalisationRemoveWWW = map[string]bool{
-	"www.jacobin.com":      true,
-	"www.jacobinmag.com":   true,
-	"www.tribunemag.co.uk": true,
-}
-
-var normalisationReplaceDomain = map[string]string{
-	"jacobinmag.com": "jacobin.com",
-}
-
-var normalisationForceHTTPS = map[string]bool{
-	"www.theguardian.com": true,
-	"jacobin.com":         true,
-	"tribunemag.co.uk":    true,
-	"newsocialist.org.uk": true,
-}
-
-func normaliseURL(inputURL url.URL) url.URL {
-	if normalisationAddWWW[inputURL.Host] {
+	if slices.Contains(normalisationAddWWW, inputURL.Host) {
 		inputURL.Host = "www." + inputURL.Host
 	}
 
-	if normalisationRemoveWWW[inputURL.Host] {
+	return inputURL
+}
+
+func normaliseRemoveWWW(inputURL url.URL) url.URL {
+	normalisationRemoveWWW := config.Config.URLNormalisations.RemoveWWW
+
+	if slices.Contains(normalisationRemoveWWW, inputURL.Host) {
 		inputURL.Host = strings.TrimPrefix(inputURL.Host, "www.")
 	}
+
+	return inputURL
+}
+
+func normaliseReplaceDomain(inputURL url.URL) url.URL {
+	normalisationReplaceDomain := config.Config.URLNormalisations.ReplaceDomain
 
 	if newDomain := normalisationReplaceDomain[inputURL.Host]; newDomain != "" {
 		inputURL.Host = newDomain
 	}
+
+	return inputURL
+}
+
+func normaliseForceHTTPS(inputURL url.URL) url.URL {
+	normalisationForceHTTPS := config.Config.URLNormalisations.ForceHTTPS
+
+	if slices.Contains(normalisationForceHTTPS, inputURL.Host) && inputURL.Scheme != "https" {
+		inputURL.Scheme = "https"
+	}
+
+	return inputURL
+}
+
+func normaliseURL(inputURL url.URL) url.URL {
+	if config.Config.URLNormalisations.AddWWW == nil {
+		config.LoadConfig()
+	}
+
+	inputURL = normaliseAddWWW(inputURL)
+	inputURL = normaliseRemoveWWW(inputURL)
+	inputURL = normaliseReplaceDomain(inputURL)
 
 	// special case
 	if inputURL.Host == "medium.com" || strings.HasSuffix(inputURL.Host, ".medium.com") {
 		inputURL.Host = "scribe.rip"
 	}
 
-	if normalisationForceHTTPS[inputURL.Host] && inputURL.Scheme != "https" {
-		inputURL.Scheme = "https"
-	}
+	inputURL = normaliseForceHTTPS(inputURL)
 
 	return inputURL
 }

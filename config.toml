@@ -1,0 +1,12 @@
+[urlNormalisations]
+add-www = ["theguardian.com"]
+remove-www = ["www.jacobin.com", "www.jacobinmag.com", "www.tribunemag.co.uk"]
+force-https = [
+  "www.theguardian.com",
+  "jacobin.com",
+  "tribunemag.co.uk",
+  "newsocialist.org.uk",
+]
+
+[urlNormalisations.replace-domain]
+"jacobinmag.com" = "jacobin.com"
