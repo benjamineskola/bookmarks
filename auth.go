@@ -26,16 +26,16 @@ func NewUser(email string, password string) (*User, error) {
 	return &user, nil
 }
 
-func GetUserByEmail(db *gorm.DB, email string) *User {
+func GetUserByEmail(email string) *User {
 	var user User
 
-	db.Where("email = ?", email).First(&user)
+	database.DB.Where("email = ?", email).First(&user)
 
 	return &user
 }
 
 func GetValidatedUser(email string, password string) (*User, error) {
-	user := GetUserByEmail(database.DB, email)
+	user := GetUserByEmail(email)
 
 	_, err := argon2id.ComparePasswordAndHash(password, user.Password)
 	if err != nil {

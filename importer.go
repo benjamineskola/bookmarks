@@ -5,8 +5,6 @@ import (
 	"fmt"
 	"log"
 	"time"
-
-	"github.com/benjamineskola/bookmarks/database"
 )
 
 var errUnhandledDate = errors.New("unhandled date type")
@@ -49,7 +47,7 @@ func mergeDateField(orig time.Time, field interface{}, changed bool) (time.Time,
 }
 
 func importer(url string, data map[string]interface{}) {
-	link := GetLinkByURL(database.DB, url)
+	link := GetLinkByURL(url)
 
 	changed := false
 
@@ -72,7 +70,7 @@ func importer(url string, data map[string]interface{}) {
 	}
 
 	if changed {
-		_, err := link.Save(database.DB)
+		_, err := link.Save()
 		if err != nil {
 			log.Fatalf("could not save link %q: %s", link.URL, err)
 		}

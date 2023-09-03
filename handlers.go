@@ -57,7 +57,7 @@ func indexHandler(w http.ResponseWriter, r *http.Request) {
 		pageNumber = 1
 	}
 
-	links, totalLinks := GetLinks(database.DB, pageNumber, 0, onlyPublic, onlyRead)
+	links, totalLinks := GetLinks(pageNumber, 0, onlyPublic, onlyRead)
 
 	authenticated := isAuthenticated(r)
 
@@ -95,7 +95,7 @@ func indexHandler(w http.ResponseWriter, r *http.Request) {
 func showHandler(w http.ResponseWriter, r *http.Request) {
 	urlFormat, _ := r.Context().Value(middleware.URLFormatCtxKey).(string)
 	linkID, _ := strconv.Atoi(chi.URLParam(r, "id"))
-	link := GetLinkByID(database.DB, uint(linkID))
+	link := GetLinkByID(uint(linkID))
 
 	switch urlFormat {
 	case "json":
@@ -132,7 +132,7 @@ func formHandler(w http.ResponseWriter, r *http.Request) {
 
 	link := &Link{} //nolint:exhaustruct
 	if linkID != 0 {
-		link = GetLinkByID(database.DB, uint(linkID))
+		link = GetLinkByID(uint(linkID))
 	}
 
 	ctx := SingleTemplateContext{Link: link} //nolint:exhaustruct
@@ -150,7 +150,7 @@ func saveHandler(w http.ResponseWriter, r *http.Request) {
 
 	link := &Link{} //nolint:exhaustruct
 	if linkID != 0 {
-		link = GetLinkByID(database.DB, uint(linkID))
+		link = GetLinkByID(uint(linkID))
 	}
 
 	err := r.ParseForm()
@@ -184,7 +184,7 @@ func saveHandler(w http.ResponseWriter, r *http.Request) {
 		link.SavedAt = time.Now()
 	}
 
-	_, err = link.Save(database.DB)
+	_, err = link.Save()
 	if err != nil {
 		log.Panicf("could not save record: %s", err)
 	}
@@ -194,7 +194,7 @@ func saveHandler(w http.ResponseWriter, r *http.Request) {
 
 func deleteHandler(w http.ResponseWriter, r *http.Request) {
 	linkID, _ := strconv.Atoi(chi.URLParam(r, "id"))
-	link := GetLinkByID(database.DB, uint(linkID))
+	link := GetLinkByID(uint(linkID))
 
 	if link.ID == 0 {
 		w.Header().Set("Content-Type", "application/json")

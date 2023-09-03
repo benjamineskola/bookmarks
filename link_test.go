@@ -44,9 +44,9 @@ func TestLinkTags(t *testing.T) {
 	tl := TagList(tags)
 	link.Tags = &tl
 
-	id, _ := link.Save(database.DB)
+	id, _ := link.Save()
 
-	actual := GetLinkByID(database.DB, id)
+	actual := GetLinkByID(id)
 	expected := TagList(map[string]struct{}{"foo": {}, "bar": {}})
 	assert.Equal(t, &expected, actual.Tags)
 }

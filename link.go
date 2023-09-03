@@ -8,6 +8,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/benjamineskola/bookmarks/database"
 	"gorm.io/datatypes"
 	"gorm.io/gorm"
 )
@@ -85,7 +86,7 @@ func NewLink(urlString string, title string, description string, public bool) *L
 	return &link
 }
 
-func GetLinks(db *gorm.DB, page int, count int, onlyPublic bool, onlyRead bool) (*[]Link, int64) {
+func GetLinks(page int, count int, onlyPublic bool, onlyRead bool) (*[]Link, int64) {
 	var links []Link
 
 	if page < 1 {
@@ -98,7 +99,7 @@ func GetLinks(db *gorm.DB, page int, count int, onlyPublic bool, onlyRead bool) 
 
 	offset := (page - 1) * count
 
-	query := db
+	query := database.DB
 
 	if onlyPublic {
 		query = query.Where("public = ?", true)
@@ -119,18 +120,18 @@ func GetLinks(db *gorm.DB, page int, count int, onlyPublic bool, onlyRead bool) 
 	return &links, totalCount
 }
 
-func GetLinkByID(db *gorm.DB, id uint) *Link {
+func GetLinkByID(id uint) *Link {
 	var link Link
 
-	db.First(&link, id)
+	database.DB.First(&link, id)
 
 	return &link
 }
 
-func GetLinkByURL(db *gorm.DB, url string) *Link {
+func GetLinkByURL(url string) *Link {
 	var link Link
 
-	db.Where("url = ?", url).First(&link)
+	database.DB.Where("url = ?", url).First(&link)
 
 	return &link
 }
@@ -143,8 +144,8 @@ func (l Link) HasReadDate() bool {
 	return l.ReadAt.Unix() > 0
 }
 
-func (l Link) Save(db *gorm.DB) (uint, error) {
-	result := db.Save(&l)
+func (l Link) Save() (uint, error) {
+	result := database.DB.Save(&l)
 
 	return l.ID, result.Error
 }
