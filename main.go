@@ -49,11 +49,6 @@ func serve() {
 
 	database.DB = database.InitDatabase()
 
-	err := database.RunMigrations()
-	if err != nil {
-		log.Fatalf("failed to migrate database: %s", err)
-	}
-
 	router.Get("/auth/login/", loginFormHandler)
 	router.Post("/auth/login/", loginHandler)
 	router.Post("/auth/logout/", logoutHandler)
@@ -97,7 +92,7 @@ func serve() {
 
 	log.Printf("listening on %s:%s", host, port)
 
-	err = http.ListenAndServe(fmt.Sprintf("%s:%s", host, port), router)
+	err := http.ListenAndServe(fmt.Sprintf("%s:%s", host, port), router)
 	if err != nil {
 		log.Fatalf("Failed to start server: %s", err)
 	}
@@ -105,14 +100,10 @@ func serve() {
 
 func add() {
 	database.DB = database.InitDatabase()
-	err := database.RunMigrations()
-	if err != nil {
-		log.Fatalf("failed to migrate database: %s", err)
-	}
 
 	dec := json.NewDecoder(os.Stdin)
 	var data []map[string]interface{}
-	err = dec.Decode(&data)
+	_ = dec.Decode(&data)
 
 	for _, item := range data {
 		if url, ok := item["URL"].(string); ok {
@@ -129,12 +120,14 @@ func addUser(email string, password string) {
 
 	database.DB = database.InitDatabase()
 
-	err = database.RunMigrations()
+	database.DB.Save(user)
+}
+
+func runMigrations() {
+	err := database.RunMigrations()
 	if err != nil {
 		log.Fatalf("failed to migrate database: %s", err)
 	}
-
-	database.DB.Save(user)
 }
 
 func main() {
@@ -153,6 +146,8 @@ func main() {
 		add()
 	case "adduser":
 		addUser(args[1], args[2])
+	case "migrate":
+		runMigrations()
 	default:
 		log.Fatalf("unknown command %q", cmd)
 	}
