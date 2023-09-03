@@ -21,7 +21,8 @@ func NewUser(email string, password string) (*User, error) {
 		return nil, fmt.Errorf("could not create password: %w", err)
 	}
 
-	user := User{Email: email, Password: hash}
+	user := User{Email: email, Password: hash} //nolint:exhaustruct
+
 	return &user, nil
 }
 
@@ -38,7 +39,7 @@ func GetValidatedUser(email string, password string) (*User, error) {
 
 	_, err := argon2id.ComparePasswordAndHash(password, user.Password)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("could not verify password: %w", err)
 	}
 
 	return user, nil

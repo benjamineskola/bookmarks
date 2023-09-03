@@ -130,7 +130,7 @@ func formHandler(w http.ResponseWriter, r *http.Request) {
 	linkID, _ := strconv.Atoi(chi.URLParam(r, "id"))
 	formTmpl := template.Must(template.ParseFiles("templates/form.html", "templates/base.html"))
 
-	link := &Link{}
+	link := &Link{} //nolint:exhaustruct
 	if linkID != 0 {
 		link = GetLinkByID(database.DB, uint(linkID))
 	}
@@ -205,7 +205,7 @@ func deleteHandler(w http.ResponseWriter, r *http.Request) {
 			log.Panicf("could not write output: %s", err)
 		}
 	} else {
-		database.DB.Delete(&Link{}, link.ID)
+		database.DB.Delete(&Link{}, link.ID) //nolint:exhaustruct
 		result := map[string]string{}
 		result["result"] = "success"
 		renderJSON(w, result)
@@ -330,7 +330,7 @@ func logoutHandler(w http.ResponseWriter, r *http.Request) {
 	session.Values["authenticated"] = nil
 	err = session.Save(r, w)
 
-	c := &http.Cookie{
+	cookie := &http.Cookie{ //nolint:exhaustruct
 		Name:     "authenticated",
 		Value:    "",
 		Path:     "/",
@@ -338,7 +338,7 @@ func logoutHandler(w http.ResponseWriter, r *http.Request) {
 		HttpOnly: true,
 	}
 
-	http.SetCookie(w, c)
+	http.SetCookie(w, cookie)
 
 	if err != nil {
 		return
@@ -370,6 +370,7 @@ func rejectUnauthenticated(next http.Handler) http.Handler {
 				if err != nil {
 					log.Panicf("could not write output: %s", err)
 				}
+
 				return
 			default:
 				http.Redirect(w, r, "/auth/login/", http.StatusSeeOther)

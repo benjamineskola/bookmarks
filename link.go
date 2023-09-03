@@ -12,6 +12,8 @@ import (
 	"gorm.io/gorm"
 )
 
+var errIncompatibleType = errors.New("incompatible type")
+
 type TagList map[string]struct{}
 
 func (tl *TagList) Scan(src any) error {
@@ -20,7 +22,7 @@ func (tl *TagList) Scan(src any) error {
 	case string:
 		source = s
 	default:
-		return errors.New("Incompatible type")
+		return errIncompatibleType
 	}
 
 	trimmed := strings.Trim(source, "{}")
@@ -34,8 +36,8 @@ func (tl *TagList) Scan(src any) error {
 	return nil
 }
 
-func (tl TagList) Value() (driver.Value, error) {
-	tags := make([]string, len(tl))
+func (tl TagList) Value() (driver.Value, error) { //nolint:unparam
+	tags := make([]string, 0, len(tl))
 	for tag := range tl {
 		tags = append(tags, tag)
 	}
@@ -59,6 +61,7 @@ func parseURL(urlString string) *datatypes.URL {
 	parsedURL, _ := url.Parse(urlString)
 	normalisedURL := normaliseURL(*parsedURL)
 	gormURL := datatypes.URL(normalisedURL)
+
 	return &gormURL
 }
 
@@ -98,11 +101,10 @@ func GetLinks(db *gorm.DB, page int, count int, onlyPublic bool, onlyRead bool) 
 		query = query.Order("saved_at desc")
 	}
 
-	var totalCount int64 = 0
-	query.Model(&Link{}).Count(&totalCount)
+	var totalCount int64
 
+	query.Model(&Link{}).Count(&totalCount) //nolint:exhaustruct
 	query = query.Limit(count).Offset(offset)
-
 	query.Find(&links)
 
 	return &links, totalCount

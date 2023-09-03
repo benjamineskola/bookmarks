@@ -3,6 +3,7 @@ package main
 import (
 	"errors"
 	"fmt"
+	"log"
 	"time"
 
 	"github.com/benjamineskola/bookmarks/database"
@@ -78,6 +79,9 @@ func importer(url string, data map[string]interface{}) {
 	}
 
 	if changed {
-		link.Save(database.DB)
+		_, err := link.Save(database.DB)
+		if err != nil {
+			log.Fatalf("could not save link %q: %s", link.URL, err)
+		}
 	}
 }

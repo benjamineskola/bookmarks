@@ -101,8 +101,9 @@ func serve() {
 func add() {
 	database.DB = database.InitDatabase()
 
-	dec := json.NewDecoder(os.Stdin)
 	var data []map[string]interface{}
+
+	dec := json.NewDecoder(os.Stdin)
 	_ = dec.Decode(&data)
 
 	for _, item := range data {

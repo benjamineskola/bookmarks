@@ -26,7 +26,8 @@ func getDBPath() string {
 }
 
 func InitDatabase() *gorm.DB {
-	db, _ := gorm.Open(sqlite.Open(getDBPath()), &gorm.Config{Logger: logger.Default.LogMode(logger.Silent)})
+	db, _ := gorm.Open(sqlite.Open(getDBPath()),
+		&gorm.Config{Logger: logger.Default.LogMode(logger.Silent)}) //nolint:exhaustruct
 
 	return db
 }
