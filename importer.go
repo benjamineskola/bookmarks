@@ -28,6 +28,26 @@ func parseJSONDate(input interface{}) (*time.Time, error) {
 	return nil, errUnhandledDate
 }
 
+func mergeStringField(orig string, field interface{}, changed bool) (string, bool) {
+	if repl, ok := field.(string); ok {
+		if repl != "" && orig != repl {
+			return repl, true
+		}
+	}
+
+	return orig, changed
+}
+
+func mergeDateField(orig time.Time, field interface{}, changed bool) (time.Time, bool) {
+	if repl, err := parseJSONDate(field); err == nil {
+		if !orig.Equal(*repl) && (orig.Unix() < 1 || repl.Unix() > 0) {
+			return *repl, true
+		}
+	}
+
+	return orig, changed
+}
+
 func importer(url string, data map[string]interface{}) {
 	link := GetLinkByURL(database.DB, url)
 
@@ -41,33 +61,11 @@ func importer(url string, data map[string]interface{}) {
 		link.Tags = &tl
 	}
 
-	if title, ok := data["Title"].(string); ok {
-		if title != "" && link.Title != title {
-			changed = true
-			link.Title = title
-		}
-	}
+	link.Title, changed = mergeStringField(link.Title, data["Title"], changed)
+	link.Description, changed = mergeStringField(link.Description, data["Description"], changed)
 
-	if description, ok := data["Description"].(string); ok {
-		if description != "" && link.Description != description {
-			changed = true
-			link.Description = description
-		}
-	}
-
-	if readAt, err := parseJSONDate(data["ReadAt"]); err == nil {
-		if !link.ReadAt.Equal(*readAt) && ((!link.HasReadDate()) || (readAt.After(time.Unix(0, 0)))) {
-			changed = true
-			link.ReadAt = *readAt
-		}
-	}
-
-	if savedAt, err := parseJSONDate(data["SavedAt"]); err == nil {
-		if !link.SavedAt.Equal(*savedAt) {
-			changed = true
-			link.SavedAt = *savedAt
-		}
-	}
+	link.ReadAt, changed = mergeDateField(link.ReadAt, data["ReadAt"], changed)
+	link.SavedAt, changed = mergeDateField(link.SavedAt, data["SavedAt"], changed)
 
 	if tagsStr, ok := data["Tags"].(string); ok {
 		link.Tags.Merge(NewTagListFromString(tagsStr))
