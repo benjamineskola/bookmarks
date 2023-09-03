@@ -153,7 +153,12 @@ func saveHandler(w http.ResponseWriter, r *http.Request) {
 		link = GetLinkByID(database.DB, uint(linkID))
 	}
 
-	r.ParseForm()
+	err := r.ParseForm()
+	if err != nil {
+		renderError(w, fmt.Errorf("error parsing form: %w", err), 0)
+
+		return
+	}
 
 	parsedURL, _ := url.Parse(r.FormValue("Link.URL"))
 	normalisedURL := normaliseURL(*parsedURL)
@@ -179,7 +184,7 @@ func saveHandler(w http.ResponseWriter, r *http.Request) {
 		link.SavedAt = time.Now()
 	}
 
-	_, err := link.Save(database.DB)
+	_, err = link.Save(database.DB)
 	if err != nil {
 		log.Panicf("could not save record: %s", err)
 	}
@@ -214,6 +219,32 @@ func renderJSON(w http.ResponseWriter, data any) {
 	if err != nil {
 		result = renderJSONError(w, err, 0)
 	}
+
+	_, err = w.Write(result)
+	if err != nil {
+		log.Panicf("could not write output: %s", err)
+	}
+}
+
+func renderError(w http.ResponseWriter, err error, status int) {
+	var message string
+
+	if status == 0 {
+		status = http.StatusBadRequest
+	} else {
+		message = http.StatusText(status)
+	}
+
+	if err != nil {
+		message = fmt.Sprintf("%s", err)
+	}
+
+	if message == "" {
+		message = "Unknown error"
+	}
+
+	w.WriteHeader(status)
+	result := []byte(fmt.Sprintf("error %d: %s", status, message))
 
 	_, err = w.Write(result)
 	if err != nil {
@@ -269,7 +300,13 @@ func loginHandler(w http.ResponseWriter, r *http.Request) {
 		log.Printf("WARN: could not read cookies: %s", err)
 	}
 
-	r.ParseForm()
+	err = r.ParseForm()
+	if err != nil {
+		renderError(w, fmt.Errorf("error parsing form: %w", err), 0)
+
+		return
+	}
+
 	user, _ := GetValidatedUser(r.FormValue("email"), r.FormValue("password"))
 	session.Values["authenticated"] = (user != nil)
 	err = session.Save(r, w)
