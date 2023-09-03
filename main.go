@@ -48,6 +48,10 @@ func serve() {
 
 	router.Use(csrfMiddleware)
 
+	router.Use(func(next http.Handler) http.Handler {
+		return http.TimeoutHandler(next, 10*time.Second, "Request timed out")
+	})
+
 	database.DB = database.InitDatabase()
 
 	router.Get("/auth/login/", loginFormHandler)
