@@ -75,3 +75,10 @@ func normaliseURL(inputURL url.URL) url.URL {
 
 	return inputURL
 }
+
+func normaliseURLString(inputURL string) string {
+	parsedURL, _ := url.Parse(inputURL)
+	normalisedURL := normaliseURL(*parsedURL)
+
+	return normalisedURL.String()
+}

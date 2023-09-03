@@ -5,6 +5,7 @@ import (
 	"os"
 	"testing"
 
+	"github.com/benjamineskola/bookmarks/config"
 	"github.com/benjamineskola/bookmarks/database"
 	"github.com/stretchr/testify/assert"
 )
@@ -21,6 +22,9 @@ func TestMain(m *testing.M) {
 
 	database.DB.Exec("DELETE FROM links")
 
+	config.Config = config.MakeConfig()
+	config.Config.URLNormalisations.AddWWW = []string{"theguardian.com"}
+
 	result := m.Run()
 
 	database.DB.Exec("DELETE FROM links")
@@ -31,7 +35,7 @@ func TestMain(m *testing.M) {
 func TestLink(t *testing.T) {
 	t.Parallel()
 
-	link := NewLink("http://example.com/", "Example Website", "This is just an example.", false)
+	link := NewLink("http://example.com/", "Example Website", "TestLink example", false)
 
 	assert.Equal(t, "http://example.com/", link.URL.String())
 }
@@ -39,7 +43,7 @@ func TestLink(t *testing.T) {
 func TestLinkTags(t *testing.T) {
 	t.Parallel()
 
-	link := NewLink("http://example.com/", "Example Website", "This is just an example.", false)
+	link := NewLink("http://example.com/", "Example Website", "TestLinkTags example", false)
 	tags := map[string]struct{}{"foo": {}, "bar": {}}
 	tl := TagList(tags)
 	link.Tags = &tl
@@ -49,4 +53,37 @@ func TestLinkTags(t *testing.T) {
 	actual := GetLinkByID(id)
 	expected := TagList(map[string]struct{}{"foo": {}, "bar": {}})
 	assert.Equal(t, &expected, actual.Tags)
+}
+
+func TestGetLinkByURLNormalises(t *testing.T) {
+	t.Parallel()
+
+	testCases := []struct {
+		Input    string
+		Expected string
+	}{
+		{Input: "https://theguardian.com", Expected: "https://www.theguardian.com"},
+		{Input: "https://www.theguardian.com", Expected: "https://www.theguardian.com"},
+		{Input: "https://nottheguardian.com", Expected: ""},
+	}
+
+	link := NewLink("https://www.theguardian.com", "Example Website", "TestGetLinkByURLNormalises example", false)
+	_, err := link.Save()
+	assert.Nil(t, err)
+
+	for _, testCase := range testCases {
+		testCase := testCase
+		t.Run(testCase.Input, func(t *testing.T) {
+			t.Parallel()
+
+			actual := GetLinkByURL(testCase.Input)
+
+			if testCase.Expected == "" {
+				assert.Nil(t, actual.URL)
+			} else {
+				assert.NotNil(t, actual.URL)
+				assert.Equal(t, testCase.Expected, actual.URL.String())
+			}
+		})
+	}
 }

@@ -122,7 +122,9 @@ func GetLinkByID(id uint) *Link {
 func GetLinkByURL(url string) *Link {
 	var link Link
 
-	database.DB.Where("url = ?", url).First(&link)
+	normalisedURL := normaliseURLString(url)
+
+	database.DB.Where("url = ?", normalisedURL).First(&link)
 
 	return &link
 }
