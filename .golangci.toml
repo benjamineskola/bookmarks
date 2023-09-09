@@ -1,0 +1,18 @@
+[linters]
+enable-all = true
+disable = [
+  "deadcode",         # deprecated
+  "exhaustivestruct", # deprecated
+  "golint",           # deprecated
+  "gomnd",            # deprecated
+  "maligned",         # deprecated
+  "nosnakecase",      # deprecated
+  "scopelint",        # deprecated
+  "structcheck",      # deprecated
+  "varcheck",         # deprecated
+
+  "depguard", # noisy, too much work or else i don't understand it
+]
+
+[linters-settings.varnamelen]
+ignore-decls = ["db *gorm.DB", "w http.ResponseWriter", "r *http.Request"]

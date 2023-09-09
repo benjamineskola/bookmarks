@@ -62,7 +62,7 @@ func indexHandler(w http.ResponseWriter, r *http.Request) {
 	authenticated := isAuthenticated(r)
 
 	switch urlFormat {
-	case "json":
+	case "json": //nolint:goconst
 		renderJSON(w, links)
 	default:
 		if indexTmpl == nil {

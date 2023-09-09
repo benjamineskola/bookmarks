@@ -15,7 +15,7 @@ import (
 	"github.com/gorilla/csrf"
 )
 
-func serve() {
+func serve() { //nolint:funlen
 	router := chi.NewRouter()
 	router.Use(middleware.RequestID)
 	router.Use(middleware.Logger)

@@ -1,0 +1,29 @@
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.4.0
+    hooks:
+      - id: check-added-large-files
+      - id: end-of-file-fixer
+  - repo: local
+    hooks:
+      - id: golangci-lint
+        name: golangci-lint
+        entry: golangci-lint run
+        language: system
+        types: [go]
+        pass_filenames: false
+      - id: gotest
+        name: go test
+        entry: sh -c 'find . -maxdepth 1 -type f -name "*.go" -exec dirname {} \; \| sort -u | xargs go test -cover'
+        language: system
+        types: [go]
+        pass_filenames: false
+      - id: djlint
+        name: djlint
+        language: system
+        entry: bin/gotmpllint
+        types: [html]
+  - repo: https://github.com/charliermarsh/ruff-pre-commit
+    rev: "v0.0.285"
+    hooks:
+      - id: ruff

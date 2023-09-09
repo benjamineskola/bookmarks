@@ -1,0 +1,8 @@
+#!/bin/sh
+set -e
+for file in "$@"; do
+	sed -E 's,\{\{,{%,g;s,}},%},g' "$file" |
+		djlint --profile golang --custom-blocks define,range,with --reformat --quiet - |
+		sed -E 's,\{%,{{,g;s,%},}},g' |
+		sponge "$file"
+done
